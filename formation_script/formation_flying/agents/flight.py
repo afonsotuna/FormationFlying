@@ -18,6 +18,7 @@ import numpy as np
 from mesa import Agent
 from .airports import Airport
 from ..negotiations.greedy import do_greedy # !!! Don't forget the others.
+from ..negotiations.CNP import do_CNP
 import math
 
 
@@ -117,8 +118,8 @@ class Flight(Agent):
         if self.state == "flying":
             if self.model.negotiation_method == 0:
                 do_greedy(self)
-            # if self.model.negotiation_method == 1:
-            #     do_CNP(self)
+            if self.model.negotiation_method == 1:
+                do_CNP(self)
             # if self.model.negotiation_method == 2:
             #     do_English(self)
             # if self.model.negotiation_method == 3:
@@ -199,12 +200,12 @@ class Flight(Agent):
     #   Calculate how the "bid_value" is divided.
     #   The agents already in the formation, share the profit from the bid equally.
     #
-    #   !!! TODO Exc. 1.1: improve calculation joining/leaving point.!!!
+    #   !!! TODO Exc. 1.3: improve calculation joining/leaving point.!!!
     # =========================================================================
     def add_to_formation(self, target_agent, bid_value, discard_received_bids=True):
         self.model.fuel_savings_closed_deals += self.calculate_potential_fuelsavings(target_agent)
 
-        if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) >0:
+        if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
             raise Exception("Warning, you are trying to combine multiple formations - some functions aren't ready for this ("
                   "such as potential fuel-savings)")
 
@@ -265,7 +266,7 @@ class Flight(Agent):
         self.deal_value += bid_value
         target_agent.deal_value -= bid_value
 
-        self.accepting_bids = False
+        #self.accepting_bids = False  TODO check if this works
         self.formation_role = "manager"
         target_agent.formation_role = "slave"
 
@@ -303,18 +304,17 @@ class Flight(Agent):
 
     # =============================================================================
     #   This function finds the agents to make a bid to, and returns a list of these agents.
-    #   In the current implementation, it randomly returns an agent, 
-    #   instead of deciding which manager it wants tomake a bid to.
     # =============================================================================
 
-    def find_greedy_candidate(self):
-        neighbors = self.model.space.get_neighbors(pos=self.pos, radius=self.communication_range, include_center=True)
+    def find_candidate(self):
+        neighbors = self.model.space.get_neighbors(pos=self.pos, radius=self.communication_range, include_center=False)
         candidates = []
         for agent in neighbors:
             if type(agent) is Flight:
                 if agent.accepting_bids == 1:
                     candidates.append(agent)
         return candidates
+
 
     # =========================================================================
     #   Making the bid.
