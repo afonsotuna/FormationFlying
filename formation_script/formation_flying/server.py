@@ -19,7 +19,7 @@ from .SimpleContinuousModule import SimpleCanvas
 from .agents.flight import Flight
 from .agents.airports import Airport
 from .parameters import model_params
-
+import random
 
 
 def boid_draw(agent):
@@ -68,4 +68,6 @@ formation_canvas = SimpleCanvas(boid_draw, 1000, 1000)
 chart = ChartModule([{"Label": "Total Fuel Used", "Color": "Black"}],
                     data_collector_name='datacollector')
 server = ModularServer(FormationFlying, [formation_canvas, chart], "Formations", model_params)
+
+server.port = random.randrange(8500, 9000)
 server.launch()

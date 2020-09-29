@@ -27,8 +27,10 @@ def do_greedy(flight):
                     
                     if len(flight.agents_in_my_formation) > 0:
                         flight.add_to_formation(formation_target, formation_savings, discard_received_bids=True)
-                    else:
+                        break
+                    elif len(flight.agents_in_my_formation) == 0 and len(formation_target.agents_in_my_formation) == 0:
                         flight.start_formation(formation_target, formation_savings, discard_received_bids=True)
-                    break
+                        break
+
                 
         

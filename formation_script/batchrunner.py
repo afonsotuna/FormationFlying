@@ -23,3 +23,5 @@ batch_run.run_all()
 run_data = batch_run.get_model_vars_dataframe()
 run_data.head()
 
+print((run_data["Real saved fuel"] - run_data["Total saved potential saved fuel"])/ run_data["Total Fuel Used"])
+

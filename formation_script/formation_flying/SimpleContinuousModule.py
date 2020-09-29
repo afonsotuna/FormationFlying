@@ -11,7 +11,7 @@ import random
 
 
 class SimpleCanvas(VisualizationElement):
-    local_includes = ["formation_flying/simple_continuous_canvas.js?" + str(random.randint(100,999))]
+    local_includes = ["formation_flying/simple_continuous_canvas.js"]
     portrayal_method = None
     canvas_height = 500
     canvas_width = 500
