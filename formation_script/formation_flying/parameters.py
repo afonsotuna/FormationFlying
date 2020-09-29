@@ -46,8 +46,9 @@ model_params = {
     "width": 750, # [km]
     "height": 750, # [km]
     "speed": 0.25, #[km / second]
+    "max_speed": 0.500,
     "fuel_reduction": 0.75, 
-    "negotiation_method": 1,
+    "negotiation_method": 0,
     "departure_window": 3, 
     "origin_airport_x": [0.01, 0.3], 
     "origin_airport_y": [0.01, 0.3],

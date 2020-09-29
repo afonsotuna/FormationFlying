@@ -43,6 +43,7 @@ class FormationFlying(Model):
         width=1500, # [km]
         height=1500,
         speed=0.220, #[km/second]
+        max_speed=0.500,
         communication_range=1000, #[km]
         departure_window = 3,
         origin_airport_x = [0.0, 0.3], # the origin airports are randomly generated within these boundaries
@@ -62,6 +63,7 @@ class FormationFlying(Model):
         self.n_destination_airports = n_destination_airports
         self.vision = communication_range
         self.speed = speed
+        self.max_speed = max_speed
         
         # The agents are activated in random order at each step, in a space that
         # has a certain width and height and that is not toroidal 
@@ -123,6 +125,7 @@ class FormationFlying(Model):
                 destination_pos,
                 departure_time,
                 self.speed,
+                self.max_speed,
                 self.vision,
             )
             self.space.place_agent(flight, pos)
