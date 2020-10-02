@@ -32,3 +32,6 @@ def new_formation_counter(model):
 
 def add_to_formation_counter(model):
     return model.add_to_formation_counter
+
+def manager_counter(model):
+    return model.manager_counter/model.n_flights

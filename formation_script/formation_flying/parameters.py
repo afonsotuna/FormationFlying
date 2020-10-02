@@ -62,7 +62,8 @@ variable_params = {}
 
 model_reporter_parameters={"Total Fuel Used": compute_total_fuel_used, 
                            "steps": compute_model_steps, 
-                           "new formations": new_formation_counter, 
+                           "new formations": new_formation_counter,
+                           "Fraction of managers": manager_counter,
                            "added to formations": add_to_formation_counter, 
                            "Total planned Fuel": compute_planned_fuel,
                            "Total saved potential saved fuel": fuel_savings_closed_deals, 

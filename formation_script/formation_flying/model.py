@@ -87,7 +87,7 @@ class FormationFlying(Model):
 
         self.total_planned_fuel = 0
 
-
+        self.manager_counter = 0
         self.new_formation_counter = 0
         self.add_to_formation_counter = 0
 

@@ -98,10 +98,43 @@ class Flight(Agent):
         self.accepting_bids = 0
         self.received_bids = []
 
-        self.manager = self.model.random.choice([0, 1])
-        if self.manager:
+        if self.become_manager():
+            self.model.manager_counter += 1
+            self.manager = True
+            self.auctioneer = False
             self.accepting_bids = 1
-        self.auctioneer = abs(1 - self.manager)
+        else:
+            self.manager = False
+            self.auctioneer = True
+            self.accepting_bids = 0
+
+    # =============================================================================
+    #   Defines if an agent should become a manager or not
+    # =============================================================================
+    def become_manager(self):
+        neighbors = self.model.space.get_neighbors(pos=self.pos, radius=self.communication_range, include_center=True)
+        flight_neighbors = 0
+        managers = 0
+        contractors = 0
+        for agent in neighbors:
+            if type(agent) is Flight and agent != self:
+                flight_neighbors += 1
+                if agent.manager:
+                    managers += 1
+                else:
+                    contractors += 1
+        if managers == 0:
+            be_manager = True
+        elif managers / flight_neighbors >= 0.40:
+            be_manager = False
+        elif managers / flight_neighbors <= 0.15:
+            be_manager = True
+        else:
+            if self.model.random.choice([0, 1]) == 1:
+                be_manager = True
+            else:
+                be_manager = False
+        return be_manager
 
     # =============================================================================
     #   In advance, the agent moves (physically) to the next step (after having negotiated)
@@ -267,7 +300,6 @@ class Flight(Agent):
         target_agent.joining_point = self.joining_point
         target_agent.leaving_point = self.leaving_point
 
-
     # =========================================================================
     #   The value of the bid is added to the "deal value" of the manager, 
     #   and removed from the auctioneer. A manager leads the formation, the rest
@@ -309,7 +341,7 @@ class Flight(Agent):
             self.accepting_bids = True
 
         else:
-            #self.joining_point = self.calc_middle_point(self.pos, target_agent.pos)
+            # self.joining_point = self.calc_middle_point(self.pos, target_agent.pos)
             self.joining_point = self.find_joining_point(target_agent)
 
             target_agent.joining_point = self.joining_point
@@ -389,9 +421,9 @@ class Flight(Agent):
         m = (arrival_point[1] - departure_point[1]) / (arrival_point[0] - departure_point[0])
         b = departure_point[1] - m * departure_point[0]
         if self.pos[0] >= target_agent.pos[0]:
-            joining_point = [self.pos[0], m * self.pos[0]+b]
+            joining_point = [self.pos[0], m * self.pos[0] + b]
         else:
-            joining_point = [target_agent.pos[0], m * target_agent.pos[0]+b]
+            joining_point = [target_agent.pos[0], m * target_agent.pos[0] + b]
         return joining_point
 
     # =========================================================================
@@ -472,7 +504,8 @@ class Flight(Agent):
 
         joining_point = self.find_joining_point(target_agent)
         dist_self = ((joining_point[0] - self.pos[0]) ** 2 + (joining_point[1] - self.pos[1]) ** 2) ** 0.5
-        dist_target = ((joining_point[0] - target_agent.pos[0]) ** 2 + (joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
+        dist_target = ((joining_point[0] - target_agent.pos[0]) ** 2 + (
+                    joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
 
         if dist_self >= dist_target:
             own_speed = self.max_speed
@@ -482,7 +515,7 @@ class Flight(Agent):
                 time = regular_time + 1
             elif rest == 0:
                 time = regular_time
-            target_speed = dist_target/time
+            target_speed = dist_target / time
         else:
             target_speed = target_agent.max_speed
             rest = dist_target % target_speed
@@ -491,7 +524,6 @@ class Flight(Agent):
                 time = regular_time + 1
             elif rest == 0:
                 time = regular_time
-            own_speed = dist_self/time
-
+            own_speed = dist_self / time
 
         return own_speed, target_speed
