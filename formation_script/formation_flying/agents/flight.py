@@ -366,7 +366,7 @@ class Flight(Agent):
         candidates = []
         for agent in neighbors:
             if type(agent) is Flight:
-                if agent.accepting_bids == 1:
+                if agent.formation_state == 0 or agent.formation_state == 2:
                     if not self == agent:
                         # Pass if it is the current agent
                         candidates.append(agent)

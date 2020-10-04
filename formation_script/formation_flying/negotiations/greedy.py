@@ -25,10 +25,10 @@ def do_greedy(flight):
                     formation_target = agent
                     formation_savings = flight.calculate_potential_fuelsavings(agent)
                     
-                    if len(flight.agents_in_my_formation) > 0:
-                        flight.add_to_formation(formation_target, formation_savings, discard_received_bids=True)
+                    if len(formation_target.agents_in_my_formation) > 0:
+                        formation_target.add_to_formation(flight, formation_savings, discard_received_bids=True)
                         break
-                    elif len(flight.agents_in_my_formation) == 0 and len(formation_target.agents_in_my_formation) == 0:
+                    elif len(formation_target.agents_in_my_formation) == 0:
                         flight.start_formation(formation_target, formation_savings, discard_received_bids=True)
                         break
 
