@@ -341,7 +341,6 @@ class Flight(Agent):
             self.accepting_bids = True
 
         else:
-            # self.joining_point = self.calc_middle_point(self.pos, target_agent.pos)
             self.joining_point = self.find_joining_point(target_agent)
 
             target_agent.joining_point = self.joining_point
@@ -455,8 +454,8 @@ class Flight(Agent):
 
         if self.state == "flying":
             self.model.total_flight_time += 1
-            if self.formation_state == 2:
-                # If in formation, fuel consumption is 75% of normal fuel consumption.
+            if self.formation_state == 2 and self.formation_role != "master":
+                # If in formation, and not the master, fuel consumption is 75% of normal fuel consumption.
                 f_c = self.model.fuel_reduction * self.speed
                 self.heading = [self.leaving_point[0] - self.pos[0], self.leaving_point[1] - self.pos[1]]
                 self.heading /= np.linalg.norm(self.heading)
@@ -466,7 +465,7 @@ class Flight(Agent):
 
             elif self.formation_state == 1 or self.formation_state == 4:
                 # While on its way to join a new formation
-                if self.formation_state == 4 and len(self.agents_in_my_formation) > 0:
+                if self.formation_state == 4 and len(self.agents_in_my_formation) > 0 and self.formation_role != "master":
                     f_c = self.speed_to_joining * self.model.fuel_reduction
                 else:
                     f_c = self.speed_to_joining
