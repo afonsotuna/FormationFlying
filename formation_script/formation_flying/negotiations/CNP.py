@@ -4,35 +4,46 @@
 #       - there is a fixed minimum bid a manager will accept (should be replaced by a cost function)
 #       - contractor bids expire at scheduled departure + delta_T
 # =============================================================================
+import math
 
 def do_CNP(flight):
     if not flight.departure_time:
         raise Exception(
             "The object passed to the CNP has no departure time, therefore it seems that it is not a flight.")
 
-    min_bid = 10
+    delta_T = 5  # Steps after which a bid expires
+
+    # Behaviour of a contractor TODO make formation masters be able to bid
+    if flight.auctioneer and flight.formation_state == 0:
+        targets = flight.find_CNP_candidate()
+
+        if targets:
+            positive_savings = []
+            for agent in targets:
+                fuel_saved = flight.calculate_potential_fuelsavings(agent)
+                joining_point = flight.find_joining_point(agent)
+                dist_self = ((joining_point[0] - flight.pos[0]) ** 2 + (joining_point[1] - flight.pos[1]) ** 2) ** 0.5
+                join_speed, their_speed = flight.calc_speed_to_point(agent)
+                if int(dist_self) != 0:
+                    time_to_join = dist_self / join_speed
+                    if fuel_saved > 0:
+                        positive_savings.append({"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
+
+            sorted(positive_savings, key=lambda i: i["fuel_saved"])
+            if positive_savings:
+                best_offer = list(positive_savings[0].values())
+                flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
+
     # Behaviour of a manager
     if flight.manager and flight.accepting_bids:
-            if len(flight.received_bids) != 0:
-                for bid in flight.received_bids:
-                    bid = list(bid.values())
-                    if bid[1] > min_bid and bid[2] <= flight.model.schedule.steps:
-                        if len(flight.agents_in_my_formation) == 0 and len(bid[0].agents_in_my_formation) == 0:
-                            flight.start_formation(bid[0], bid[1], discard_received_bids=False)
-                        elif len(flight.agents_in_my_formation) != 0 and len(bid[0].agents_in_my_formation) == 0:
-                            flight.add_to_formation(bid[0], bid[1], discard_received_bids=False)
-
-
-    delta_T = 10
-    # Behaviour of a contractor
-    if flight.auctioneer and flight.formation_state == 0:
-        neighbors = flight.find_greedy_candidate()
-        saving_per_neighbor = []
-        for manager in neighbors:
-            savings = flight.calculate_potential_fuelsavings(manager)
-            saving_per_neighbor.append({"agent": manager, "saving": savings})
-        sorted(saving_per_neighbor, key=lambda i: i["saving"])
-        best_offer = list(saving_per_neighbor[0].values())
-        print(best_offer)
-        flight.make_bid(best_offer[0], best_offer[1], flight.departure_time+delta_T)
-
+        if flight.received_bids:
+            received_bids = flight.received_bids
+            sorted(received_bids, key=lambda i: i["time_to_join"])
+            for bid in received_bids:
+                bid = list(bid.values())
+                if flight.model.schedule.steps <= bid[3]:
+                    if flight.agents_in_my_formation:
+                        flight.add_to_formation(bid[0], bid[1], discard_received_bids=False)
+                    elif not flight.agents_in_my_formation:
+                        flight.start_formation(bid[0], bid[1], discard_received_bids=False)
+                    break

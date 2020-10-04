@@ -256,10 +256,7 @@ class Flight(Agent):
             raise Exception("Model isn't designed for this scenario.")
 
         self.model.add_to_formation_counter += 1
-        if self.model.negotiation_method == 0:
-            self.accepting_bids = False
-        else:
-            self.accepting_bids = True
+        self.accepting_bids = False
 
         if discard_received_bids:
             # Discard all bids that have been received
@@ -318,10 +315,7 @@ class Flight(Agent):
         self.deal_value += bid_value
         target_agent.deal_value -= bid_value
 
-        if self.model.negotiation_method == 0:
-            self.accepting_bids = False
-        else:
-            self.accepting_bids = True
+        self.accepting_bids = False
         self.formation_role = "manager"
         target_agent.formation_role = "slave"
 
@@ -371,11 +365,22 @@ class Flight(Agent):
                         candidates.append(agent)
         return candidates
 
+    def find_CNP_candidate(self):
+        neighbors = self.model.space.get_neighbors(pos=self.pos, radius=self.communication_range, include_center=True)
+        candidates = []
+        for agent in neighbors:
+            if type(agent) is Flight:
+                if (agent.formation_state == 0 and agent.manager) or (
+                        agent.formation_state == 2 and agent.formation_role == "master"):
+                    if not self == agent:
+                        candidates.append(agent)
+        return candidates
+
     # =========================================================================
     #   Making the bid.
     # =========================================================================
-    def make_bid(self, bidding_target, bid_value, bid_expiration_date):
-        bid = {"bidding_agent": self, "value": bid_value, "exp_date": bid_expiration_date}
+    def make_bid(self, bidding_target, fuel_saved, time_to_join, bid_expiration_date):
+        bid = {"bidding_agent": self, "fuel_saved": fuel_saved, "time_to_join": time_to_join, "exp_date": bid_expiration_date}
         bidding_target.received_bids.append(bid)
 
     # =========================================================================
@@ -465,7 +470,8 @@ class Flight(Agent):
 
             elif self.formation_state == 1 or self.formation_state == 4:
                 # While on its way to join a new formation
-                if self.formation_state == 4 and len(self.agents_in_my_formation) > 0 and self.formation_role != "master":
+                if self.formation_state == 4 and len(
+                        self.agents_in_my_formation) > 0 and self.formation_role != "master":
                     f_c = self.speed_to_joining * self.model.fuel_reduction
                 else:
                     f_c = self.speed_to_joining
@@ -504,7 +510,7 @@ class Flight(Agent):
         joining_point = self.find_joining_point(target_agent)
         dist_self = ((joining_point[0] - self.pos[0]) ** 2 + (joining_point[1] - self.pos[1]) ** 2) ** 0.5
         dist_target = ((joining_point[0] - target_agent.pos[0]) ** 2 + (
-                    joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
+                joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
 
         if dist_self >= dist_target:
             own_speed = self.max_speed
