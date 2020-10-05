@@ -4,7 +4,6 @@
 #       - there is a fixed minimum bid a manager will accept (should be replaced by a cost function)
 #       - contractor bids expire at scheduled departure + delta_T
 # =============================================================================
-import math
 
 def do_CNP(flight):
     if not flight.departure_time:
@@ -34,7 +33,7 @@ def do_CNP(flight):
                 best_offer = list(positive_savings[0].values())
                 flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
 
-    # Behaviour of a manager
+    # Behaviour of a manager (receiving bids or becoming a contractor)
     if flight.manager and flight.accepting_bids:
         if flight.received_bids:
             received_bids = flight.received_bids
@@ -43,8 +42,13 @@ def do_CNP(flight):
                 bid = list(bid.values())
                 if flight.model.schedule.steps <= bid[3]:
                     if flight.agents_in_my_formation:
-                        flight.add_to_formation(bid[0], bid[1], discard_received_bids=False)
+                        flight.add_to_formation(bid[0], bid[1], discard_received_bids=True)
                     elif not flight.agents_in_my_formation:
-                        flight.start_formation(bid[0], bid[1], discard_received_bids=False)
+                        flight.start_formation(bid[0], bid[1], discard_received_bids=True)
                     break
-
+        elif len(flight.agents_in_my_formation) == 0 and flight.formation_state == 0 and flight.model.schedule.steps >= 300:
+            neighbors = flight.find_CNP_candidate()
+            if neighbors:
+                flight.manager = False
+                flight.auctioneer = True
+                flight.accepting_bids = False
