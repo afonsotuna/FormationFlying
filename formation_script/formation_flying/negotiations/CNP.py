@@ -38,7 +38,7 @@ def do_CNP(flight):
     if flight.manager and flight.accepting_bids:
         if flight.received_bids:
             received_bids = flight.received_bids
-            sorted(received_bids, key=lambda i: i["time_to_join"])
+            sorted(received_bids, key=lambda i: i["time_to_join"], reverse=True)
             for bid in received_bids:
                 bid = list(bid.values())
                 if flight.model.schedule.steps <= bid[3]:
@@ -47,3 +47,4 @@ def do_CNP(flight):
                     elif not flight.agents_in_my_formation:
                         flight.start_formation(bid[0], bid[1], discard_received_bids=False)
                     break
+
