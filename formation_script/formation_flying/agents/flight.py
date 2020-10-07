@@ -224,7 +224,7 @@ class Flight(Agent):
                 formation_joiner = self
                 n_agents_in_formation = len(target_agent.agents_in_my_formation) + 1
 
-            joining_point = self.find_joining_point(formation_leader.pos, formation_joiner.pos)
+            joining_point = self.find_joining_point(target_agent)
             leaving_point = formation_leader.leaving_point
 
             # Fuel for leader
@@ -263,55 +263,97 @@ class Flight(Agent):
     def add_to_formation(self, target_agent, bid_value, discard_received_bids=True):
         self.model.fuel_savings_closed_deals += self.calculate_potential_fuelsavings(target_agent)
 
-        if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
-            raise Exception(
-                "Warning, you are trying to combine multiple formations - some functions aren't ready for this ("
-                "such as potential fuel-savings)")
-
         if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) == 0:
             raise Exception("Model isn't designed for this scenario.")
 
-        self.model.add_to_formation_counter += 1
-        self.accepting_bids = False
+        if len(self.agents_in_my_formation) >= 0 and len(target_agent.agents_in_my_formation) == 0:
+            self.model.add_to_formation_counter += 1
+            self.accepting_bids = False
 
-        if discard_received_bids:
-            # Discard all bids that have been received
-            self.received_bids = []
+            if discard_received_bids:
+                # Discard all bids that have been received
+                self.received_bids = []
 
-        self.joining_point = self.find_joining_point(target_agent)
-        self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_point(target_agent)
+            self.joining_point = self.find_joining_point(target_agent)
+            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_point(target_agent)
 
-        involved_agents = [self]
-        for agent in self.agents_in_my_formation:
-            involved_agents.append(agent)  # These are the current formation agents
+            my_agents = [self]
+            for agent in self.agents_in_my_formation:
+                my_agents.append(agent)  # These are the current formation agents
 
-        for agent in involved_agents:
-            agent.agents_in_my_formation.append(target_agent)
-            agent.formation_state = 4
+            for agent in my_agents:
+                agent.agents_in_my_formation.append(target_agent)
+                agent.formation_state = 4
 
-        if target_agent in involved_agents:
-            raise Exception("This is not correct")
+            if target_agent in my_agents:
+                raise Exception("This is not correct")
 
-        bid_receivers = bid_value / (len(
-            self.agents_in_my_formation) + 1)
+            bid_receivers = bid_value / (len(
+                self.agents_in_my_formation) + 1)
 
-        self.deal_value += bid_receivers
-        for agent in self.agents_in_my_formation:
-            agent.deal_value += bid_receivers
+            self.deal_value += bid_receivers
+            for agent in self.agents_in_my_formation:
+                agent.deal_value += bid_receivers
 
-        target_agent.deal_value -= bid_value
+            target_agent.deal_value -= bid_value
 
-        target_agent.formation_state = 1
+            target_agent.formation_state = 1
 
-        target_agent.agents_in_my_formation = involved_agents
+            target_agent.agents_in_my_formation = my_agents
 
-        for agent in involved_agents:
-            agent.joining_point = self.joining_point
-            agent.leaving_point = self.leaving_point
-            agent.speed_to_joining = self.speed_to_joining
+            for agent in my_agents:
+                agent.joining_point = self.joining_point
+                agent.leaving_point = self.leaving_point
+                agent.speed_to_joining = self.speed_to_joining
 
-        target_agent.joining_point = self.joining_point
-        target_agent.leaving_point = self.leaving_point
+            target_agent.joining_point = self.joining_point
+            target_agent.leaving_point = self.leaving_point
+
+        if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
+            self.model.add_to_formation_counter += 1
+            self.accepting_bids = False
+
+            if discard_received_bids:
+                # Discard all bids that have been received
+                self.received_bids = []
+
+            self.joining_point = self.find_joining_point(target_agent)
+            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_point(target_agent)
+
+            my_agents = [self]
+            their_agents = [target_agent]
+
+            for agent in self.agents_in_my_formation:
+                my_agents.append(agent)     # These are the current formation agents
+            for agent in target_agent.agents_in_my_formation:
+                their_agents.append(agent)  # These are their current formation agents
+
+            bid_receivers = bid_value / (len(self.agents_in_my_formation) + 1)
+            for agent in my_agents:
+                agent.deal_value += bid_receivers
+
+            bid_payers = bid_value / (len(target_agent.agents_in_my_formation) + 1)
+            for agent in their_agents:
+                agent.deal_value -= bid_payers
+
+            for agent in my_agents:
+                agent.agents_in_my_formation.append(their_agents)
+                agent.formation_state = 4
+            for agent in their_agents:
+                agent.agents_in_my_formation.append(my_agents)
+                agent.formation_state = 4
+
+
+            for agent in my_agents:
+                agent.joining_point = self.joining_point
+                agent.leaving_point = self.leaving_point
+                agent.speed_to_joining = self.speed_to_joining
+
+            for agent in their_agents:
+                agent.joining_point = self.joining_point
+                agent.leaving_point = self.leaving_point
+                if not agent == target_agent:
+                    agent.speed_to_joining = target_agent.speed_to_joining
 
     # =========================================================================
     #   The value of the bid is added to the "deal value" of the manager, 
