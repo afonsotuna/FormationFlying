@@ -181,9 +181,6 @@ class Flight(Agent):
             original_distance = calc_distance(self.pos, self.destination) + calc_distance(target_agent.pos,
                                                                                           target_agent.destination)
 
-            # We can multiply by 2 as the joining- and leaving-points are in the middle!
-            # WARNING: If you change the way the leaving- and joining-points are calculated, you should change this formula accordingly!
-
             added_distance_agent1 = calc_distance(self.pos, joining_point) + calc_distance(leaving_point,
                                                                                            self.destination)
             added_distance_agent2 = calc_distance(target_agent.pos, joining_point) + calc_distance(
@@ -196,9 +193,28 @@ class Flight(Agent):
 
         else:
             if len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) > 0:
-                raise Exception("This function is not advanced enough to handle two formations joining")
+                if len(self.agents_in_my_formation) > len(target_agent.agents_in_my_formation):
+                    formation_leader = self
+                    formation_joiner = target_agent
+                elif len(self.agents_in_my_formation) < len(target_agent.agents_in_my_formation):
+                    formation_leader = target_agent
+                    formation_joiner = self
+                elif self.planned_fuel > target_agent.planned_fuel:
+                    formation_leader = self
+                    formation_joiner = target_agent
+                elif self.planned_fuel < target_agent.planned_fuel:
+                    formation_leader = target_agent
+                    formation_joiner = self
+                else:
+                    if self.model.random.choice([0, 1]) == 1:
+                        formation_leader = self
+                        formation_joiner = target_agent
+                    else:
+                        formation_leader = target_agent
+                        formation_joiner = self
+                n_agents_in_formation = len(self.agents_in_my_formation) + len(target_agent.agents_in_my_formation) + 1
 
-            if len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
+            elif len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
                 formation_leader = self
                 formation_joiner = target_agent
                 n_agents_in_formation = len(self.agents_in_my_formation) + 1
@@ -208,7 +224,7 @@ class Flight(Agent):
                 formation_joiner = self
                 n_agents_in_formation = len(target_agent.agents_in_my_formation) + 1
 
-            joining_point = self.calc_middle_point(formation_leader.pos, formation_joiner.pos)
+            joining_point = self.find_joining_point(formation_leader.pos, formation_joiner.pos)
             leaving_point = formation_leader.leaving_point
 
             # Fuel for leader

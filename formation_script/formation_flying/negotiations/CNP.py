@@ -26,7 +26,8 @@ def do_CNP(flight):
                 if int(dist_self) != 0:
                     time_to_join = dist_self / join_speed
                     if fuel_saved > 0:
-                        positive_savings.append({"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
+                        positive_savings.append(
+                            {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
 
             sorted(positive_savings, key=lambda i: i["fuel_saved"])
             if positive_savings:
@@ -51,9 +52,11 @@ def do_CNP(flight):
                     elif not flight.agents_in_my_formation:
                         flight.start_formation(bid[0], bid[1], discard_received_bids=True)
                     break
-        elif len(flight.agents_in_my_formation) == 0 and flight.formation_state == 0 and flight.model.schedule.steps >= 300:
+        elif len(
+                flight.agents_in_my_formation) == 0 and flight.formation_state == 0 and flight.model.schedule.steps >= flight.departure_time + 50:
             neighbors = flight.find_CNP_candidate()
             if neighbors:
                 flight.manager = False
                 flight.auctioneer = True
                 flight.accepting_bids = False
+
