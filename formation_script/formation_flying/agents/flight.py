@@ -310,6 +310,7 @@ class Flight(Agent):
             target_agent.leaving_point = self.leaving_point
 
         if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
+            print("I activated correctly")
             self.model.add_to_formation_counter += 1
             self.accepting_bids = False
 
@@ -354,6 +355,8 @@ class Flight(Agent):
                 agent.leaving_point = self.leaving_point
                 if not agent == target_agent:
                     agent.speed_to_joining = target_agent.speed_to_joining
+
+            target_agent.formation_role = "slave"
 
     # =========================================================================
     #   The value of the bid is added to the "deal value" of the manager, 
@@ -430,6 +433,17 @@ class Flight(Agent):
             if type(agent) is Flight:
                 if (agent.formation_state == 0 and agent.manager) or (
                         agent.formation_state == 2 and agent.formation_role == "master"):
+                    if not self == agent:
+                        candidates.append(agent)
+        return candidates
+
+
+    def find_formation_candidates(self):
+        neighbors = self.model.space.get_neighbors(pos=self.pos, radius=self.communication_range, include_center=True)
+        candidates = []
+        for agent in neighbors:
+            if type(agent) is Flight:
+                if agent.formation_state == 2: #and agent.formation_role == "master":
                     if not self == agent:
                         candidates.append(agent)
         return candidates
