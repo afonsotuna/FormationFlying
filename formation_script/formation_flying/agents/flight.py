@@ -266,7 +266,7 @@ class Flight(Agent):
         if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) == 0:
             raise Exception("Model isn't designed for this scenario.")
 
-        if len(self.agents_in_my_formation) >= 0 and len(target_agent.agents_in_my_formation) == 0:
+        if len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
             self.model.add_to_formation_counter += 1
             self.accepting_bids = False
 
@@ -338,10 +338,10 @@ class Flight(Agent):
                 agent.deal_value -= bid_payers
 
             for agent in my_agents:
-                agent.agents_in_my_formation.append(their_agents)
+                agent.agents_in_my_formation.append(agent)
                 agent.formation_state = 4
             for agent in their_agents:
-                agent.agents_in_my_formation.append(my_agents)
+                agent.agents_in_my_formation.append(agent)
                 agent.formation_state = 4
 
 
