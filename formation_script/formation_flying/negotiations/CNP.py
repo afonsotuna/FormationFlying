@@ -33,6 +33,11 @@ def do_CNP(flight):
                 best_offer = list(positive_savings[0].values())
                 flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
 
+        elif not targets and flight.model.schedule.steps >= flight.departure_time + 50:
+            flight.auctioneer = False
+            flight.manager = True
+            flight.accepting_bids = True
+
     # Behaviour of a manager (receiving bids or becoming a contractor)
     if flight.manager and flight.accepting_bids:
         if flight.received_bids:

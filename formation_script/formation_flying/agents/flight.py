@@ -520,6 +520,8 @@ class Flight(Agent):
                 time = regular_time + 1
             elif rest == 0:
                 time = regular_time
+            if time == 0:
+                time = 0.0001
             target_speed = dist_target / time
         else:
             target_speed = target_agent.max_speed
