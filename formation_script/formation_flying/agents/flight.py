@@ -103,6 +103,7 @@ class Flight(Agent):
             self.manager = True
             self.auctioneer = False
             self.accepting_bids = 1
+            self.formation_merges = 0
         else:
             self.manager = False
             self.auctioneer = True
@@ -310,7 +311,6 @@ class Flight(Agent):
             target_agent.leaving_point = self.leaving_point
 
         if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
-            print("I activated correctly")
             self.model.add_to_formation_counter += 1
             self.accepting_bids = False
 

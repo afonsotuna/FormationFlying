@@ -38,6 +38,7 @@ def do_CNP(flight):
             flight.auctioneer = False
             flight.manager = True
             flight.accepting_bids = True
+            flight.formation_merges = 0
 
     # Behaviour of a manager (receiving bids or becoming a contractor)
     if flight.manager and flight.accepting_bids:
@@ -51,7 +52,8 @@ def do_CNP(flight):
                         flight.start_formation(bid[0], bid[1], discard_received_bids=True)
                     elif flight.agents_in_my_formation and (not bid[0].agents_in_my_formation):
                         flight.add_to_formation(bid[0], bid[1], discard_received_bids=True)
-                    elif flight.agents_in_my_formation and bid[0].agents_in_my_formation:
+                    elif flight.agents_in_my_formation and bid[0].agents_in_my_formation and flight.formation_merges <= 3:
+                        flight.formation_merges += 1
                         flight.add_to_formation(bid[0], bid[1], discard_received_bids=True)
                     break
         elif len(
@@ -64,11 +66,9 @@ def do_CNP(flight):
 
     # Behaviour of a manager in-formation (bidding to join other formations)
     if flight.manager and len(flight.agents_in_my_formation) > 0 and not flight.received_bids and flight.model.schedule.steps > 300:
-        print("I'm looking for candidates")
         candidates = flight.find_formation_candidates()
 
         if candidates:
-            print("I am a formation with targets")
             positive_savings = []
             for agent in candidates:
                 fuel_saved = flight.calculate_potential_fuelsavings(agent)
