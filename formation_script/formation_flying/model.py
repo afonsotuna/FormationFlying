@@ -90,6 +90,8 @@ class FormationFlying(Model):
         self.manager_counter = 0
         self.new_formation_counter = 0
         self.add_to_formation_counter = 0
+        self.formation_counter = 0
+        self.agents_in_formation = 0
 
         self.total_fuel_consumption = 0
         self.total_flight_time = 0

@@ -4,6 +4,7 @@
 #       - there is a fixed minimum bid a manager will accept (should be replaced by a cost function)
 #       - contractor bids expire at scheduled departure + delta_T
 # =============================================================================
+import random
 
 def do_CNP(flight):
     if not flight.departure_time:
@@ -12,7 +13,7 @@ def do_CNP(flight):
 
     delta_T = 5  # Steps after which a bid expires
 
-    # Behaviour of a contractor TODO make formation masters be able to bid
+    # Behaviour of a contractor
     if flight.auctioneer and flight.formation_state == 0:
         targets = flight.find_CNP_candidate()
 
@@ -83,3 +84,13 @@ def do_CNP(flight):
                 if positive_savings:
                     best_offer = list(positive_savings[0].values())
                     flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
+
+        # if candidates:
+        #     index = random.randint(0,len(candidates)-1)
+        #     agent = candidates[index]
+        #     fuel_saved = flight.calculate_potential_fuelsavings(agent)
+        #     joining_point = flight.find_joining_point(agent)
+        #     dist_self = ((joining_point[0] - flight.pos[0]) ** 2 + (joining_point[1] - flight.pos[1]) ** 2) ** 0.5
+        #     join_speed, their_speed = flight.calc_speed_to_point(agent)
+        #     time_to_join = dist_self / join_speed
+        #     flight.make_bid(agent, fuel_saved, time_to_join, flight.model.schedule.steps + delta_T)

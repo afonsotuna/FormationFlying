@@ -268,7 +268,8 @@ class Flight(Agent):
             raise Exception("Model isn't designed for this scenario.")
 
         if len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
-            self.model.add_to_formation_counter += 1
+            #self.model.add_to_formation_counter += 1
+            self.model.agents_in_formation += 1
             self.accepting_bids = False
 
             if discard_received_bids:
@@ -311,7 +312,7 @@ class Flight(Agent):
             target_agent.leaving_point = self.leaving_point
 
         if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
-            self.model.add_to_formation_counter += 1
+            self.model.formation_counter -= 1
             self.accepting_bids = False
 
             if discard_received_bids:
@@ -371,7 +372,7 @@ class Flight(Agent):
         if len(self.agents_in_my_formation) > 0 or len(target_agent.agents_in_my_formation) > 0:
             raise Exception("Starting a formation with an agent that is already in a formation!")
 
-        self.model.new_formation_counter += 1
+        self.model.formation_counter += 1
         self.model.fuel_savings_closed_deals += self.calculate_potential_fuelsavings(target_agent)
         self.deal_value += bid_value
         target_agent.deal_value -= bid_value
@@ -406,6 +407,7 @@ class Flight(Agent):
 
         self.leaving_point = self.calc_middle_point(self.destination, target_agent.destination)
         self.agents_in_my_formation.append(target_agent)
+        self.model.agents_in_formation += len(self.agents_in_my_formation) + 1
         target_agent.agents_in_my_formation.append(self)
         target_agent.leaving_point = self.leaving_point
 
