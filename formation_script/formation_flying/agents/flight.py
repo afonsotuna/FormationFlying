@@ -301,7 +301,7 @@ class Flight(Agent):
 
             target_agent.formation_state = 1
 
-            target_agent.agents_in_my_formation = my_agents
+            target_agent.agents_in_my_formation = my_agents[:]
 
             for agent in my_agents:
                 agent.joining_point = self.joining_point

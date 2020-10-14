@@ -10,7 +10,7 @@ np.seterr(all='raise')
 
 from mesa import Model
 from mesa.space import ContinuousSpace
-from mesa.time import SimultaneousActivation
+from mesa.time import StagedActivation
 from mesa.datacollection import DataCollector
 from mesa.batchrunner import BatchRunner
 from .metrics import *
@@ -68,7 +68,9 @@ class FormationFlying(Model):
         # The agents are activated in random order at each step, in a space that
         # has a certain width and height and that is not toroidal 
         # (which means that edges do not wrap around)
-        self.schedule = SimultaneousActivation(self)
+        self.schedule = StagedActivation(self, stage_list=["step", "advance"], shuffle=True) # This line has changed
+        # in V9 on 13-oct. You could add additional methods to the "stage_list" if you want to do more substeps of a
+        # negotiation within one agent step.
         self.space = ContinuousSpace(width, height, False) 
 
         # These are values between [0,1] that limit the boundaries of the 
