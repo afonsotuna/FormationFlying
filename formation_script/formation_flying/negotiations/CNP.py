@@ -68,8 +68,7 @@ def do_CNP(flight):
                 flight.accepting_bids = False
 
     # Behaviour of a manager in-formation (bidding to join other formations)
-    if flight.manager and len(flight.agents_in_my_formation) > 0 and (
-            not flight.received_bids) and flight.model.schedule.steps % 5 == 0:
+    if flight.formation_role == "master" and flight.formation_state == 2 and (not flight.received_bids) and flight.model.schedule.steps % 5 == 0 and flight.model.schedule.steps >= 300:
         print("I'm looking for candidates")
         candidates = flight.find_formation_candidates()
         if candidates:

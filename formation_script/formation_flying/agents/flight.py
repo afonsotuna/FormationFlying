@@ -97,6 +97,7 @@ class Flight(Agent):
         # =============================================================================
         self.accepting_bids = 0
         self.received_bids = []
+        self.formation_role = False
 
         if self.become_manager():
             self.model.manager_counter += 1
@@ -176,7 +177,7 @@ class Flight(Agent):
     def calculate_potential_fuelsavings(self, target_agent):
         if len(self.agents_in_my_formation) == 0 and len(target_agent.agents_in_my_formation) == 0:
             joining_point = self.find_joining_point(target_agent)
-            leaving_point = self.calc_middle_point(self.destination, target_agent.destination)
+            leaving_point = self.find_leaving_point(target_agent)
 
             original_distance = calc_distance(self.pos, self.destination) + calc_distance(target_agent.pos,
                                                                                           target_agent.destination)
@@ -212,17 +213,17 @@ class Flight(Agent):
                     else:
                         formation_leader = target_agent
                         formation_joiner = self
-                n_agents_in_formation = len(self.agents_in_my_formation) + len(target_agent.agents_in_my_formation) + 1
+                n_agents_in_formation = len(self.agents_in_my_formation) + len(target_agent.agents_in_my_formation) + 2
 
             elif len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
                 formation_leader = self
                 formation_joiner = target_agent
-                n_agents_in_formation = len(self.agents_in_my_formation) + 1
+                n_agents_in_formation = len(self.agents_in_my_formation) + 2
 
             elif len(self.agents_in_my_formation) == 0 and len(target_agent.agents_in_my_formation) > 0:
                 formation_leader = target_agent
                 formation_joiner = self
-                n_agents_in_formation = len(target_agent.agents_in_my_formation) + 1
+                n_agents_in_formation = len(target_agent.agents_in_my_formation) + 2
 
             joining_point = self.find_joining_point(target_agent)
             leaving_point = formation_leader.leaving_point
@@ -497,17 +498,6 @@ class Flight(Agent):
     def distance_to_destination(self, destination):
         # 
         return ((destination[0] - self.pos[0]) ** 2 + (destination[1] - self.pos[1]) ** 2) ** 0.5
-
-    # def find_joining_point(self, target_agent):
-    #     departure_point = self.calc_middle_point(self.pos, target_agent.pos)
-    #     arrival_point = self.calc_middle_point(self.destination, target_agent.destination)
-    #     m = (arrival_point[1] - departure_point[1]) / (arrival_point[0] - departure_point[0])
-    #     b = departure_point[1] - m * departure_point[0]
-    #     if self.pos[0] >= target_agent.pos[0]:
-    #         joining_point = [self.pos[0], m * self.pos[0] + b]
-    #     else:
-    #         joining_point = [target_agent.pos[0], m * target_agent.pos[0] + b]
-    #     return joining_point
 
     def kent_weights(self, n_agents):
         return -0.0017*n_agents**3 + 0.0277*n_agents**2 - 0.1639*n_agents + 1.1357
