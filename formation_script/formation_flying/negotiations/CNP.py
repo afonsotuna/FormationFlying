@@ -4,9 +4,6 @@
 #       - there is a fixed minimum bid a manager will accept (should be replaced by a cost function)
 #       - contractor bids expire at scheduled departure + delta_T
 # =============================================================================
-import random
-
-
 def do_CNP(flight):
     if not flight.departure_time:
         raise Exception(
@@ -24,7 +21,7 @@ def do_CNP(flight):
                 fuel_saved = flight.calculate_potential_fuelsavings(agent)
                 joining_point = flight.find_joining_point(agent)
                 dist_self = ((joining_point[0] - flight.pos[0]) ** 2 + (joining_point[1] - flight.pos[1]) ** 2) ** 0.5
-                join_speed, their_speed = flight.calc_speed_to_point(agent)
+                join_speed, their_speed = flight.calc_speed_to_joining_point(agent)
                 if int(dist_self) != 0:
                     time_to_join = dist_self / join_speed
                     if fuel_saved > 0:
@@ -77,7 +74,7 @@ def do_CNP(flight):
                 fuel_saved = flight.calculate_potential_fuelsavings(agent)
                 joining_point = flight.find_joining_point(agent)
                 dist_self = ((joining_point[0] - flight.pos[0]) ** 2 + (joining_point[1] - flight.pos[1]) ** 2) ** 0.5
-                join_speed, their_speed = flight.calc_speed_to_point(agent)
+                join_speed, their_speed = flight.calc_speed_to_joining_point(agent)
                 time_to_join = dist_self / join_speed
                 if fuel_saved > 0:
                     positive_savings.append(

@@ -39,7 +39,7 @@ max_steps = 10000
 n_iterations = 2
 
 model_params = {
-    "n_flights": 6,
+    "n_flights": 5,
     "n_origin_airports": 20,
     "n_destination_airports": 20,
     "communication_range": 200, #[km]
@@ -47,7 +47,8 @@ model_params = {
     "height": 750, # [km]
     "speed": 0.25, #[km / second]
     "max_speed": 0.500,
-    "fuel_reduction": 0.75, 
+    "fuel_reduction": 0.75,
+    "alliance_ratio": 0.30,
     "negotiation_method": 1,
     "departure_window": 3,
     "origin_airport_x": [0.01, 0.3], 

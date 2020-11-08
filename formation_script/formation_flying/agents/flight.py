@@ -85,6 +85,10 @@ class Flight(Agent):
 
         self.formation_state = 0  # 0 = no formation, 1 = committed, 2 = in formation, 3 = unavailable, 4 = adding to formation
 
+        self.alliance = 0 # 0 = not in alliance, 1 = in alliance
+        if self.model.random.random() < self.model.alliance_ratio:
+            self.alliance = 1
+
         self.state = "scheduled"  # Can be scheduled, flying, or arrived
 
         self.last_bid_expiration_time = 0
@@ -267,7 +271,7 @@ class Flight(Agent):
         if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) == 0:
             raise Exception("Model isn't designed for this scenario.")
 
-        if len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
+        elif len(self.agents_in_my_formation) > 0 and len(target_agent.agents_in_my_formation) == 0:
             self.model.agents_in_formation += 1
             self.accepting_bids = False
 
@@ -277,7 +281,7 @@ class Flight(Agent):
 
             # The joining point (common for both) and joining speeds are calculated
             self.joining_point = self.find_joining_point(target_agent)
-            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_point(target_agent)
+            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_joining_point(target_agent)
 
             # The list my_agents contains all agents in my formation, including myself
             my_agents = [self]
@@ -299,20 +303,19 @@ class Flight(Agent):
                 agent.deal_value += bid_receivers
 
             target_agent.deal_value -= bid_value
-
             target_agent.formation_state = 1
-
             target_agent.agents_in_my_formation = my_agents[:]
 
             for agent in my_agents:
                 agent.joining_point = self.joining_point
                 agent.leaving_point = self.leaving_point
                 agent.speed_to_joining = self.speed_to_joining
+                agent.formation_state = 4
 
             target_agent.joining_point = self.joining_point
             target_agent.leaving_point = self.leaving_point
 
-        if len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
+        elif len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
             self.model.formation_counter -= 1
             self.accepting_bids = False
             target_agent.accepting_bids = False
@@ -323,7 +326,7 @@ class Flight(Agent):
                 target_agent.received_bids = []
 
             self.joining_point = self.find_joining_point(target_agent)
-            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_point(target_agent)
+            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_joining_point(target_agent)
 
             # Two lists, one for my own formation, one for the target agent's formation, both including ourselves
             my_agents = [self]
@@ -406,7 +409,7 @@ class Flight(Agent):
             self.joining_point = self.find_joining_point(target_agent)
             target_agent.joining_point = self.joining_point
 
-            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_point(target_agent)
+            self.speed_to_joining, target_agent.speed_to_joining = self.calc_speed_to_joining_point(target_agent)
 
             target_agent.formation_state = 1
             self.formation_state = 1
@@ -517,84 +520,103 @@ class Flight(Agent):
         return [cx, cy], radius
 
     def find_joining_point(self, target_agent):
-        my_agents = len(self.agents_in_my_formation) + 1
-        their_agents = len(target_agent.agents_in_my_formation) + 1
-        if self.pos[1] > target_agent.pos[1]:
-            A = self.pos
-            B = target_agent.pos
-        else:
-            B = self.pos
-            A = target_agent.pos
-        AB = ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
-        w_a = self.kent_weights(my_agents)
-        w_b = self.kent_weights(their_agents)
-        w_c = self.kent_weights(my_agents+their_agents)
-        AX = (AB/w_c)*w_b
-        BX = (AB/w_c) * w_a
-        alpha = math.acos(-(AX**2-BX**2-AB**2)/(2*AX*AB))
-        beta = (alpha/AX) * BX
-        phi = math.atan((abs(B[1]-A[1]))/(abs(B[0]-A[0])))
-        gamma = math.pi-beta-phi
-        X = [A[0]-AX*math.cos(gamma), A[1] - AX * math.sin(gamma)]
-        C = self.find_leaving_point(target_agent)
+        try:
+            my_agents = len(self.agents_in_my_formation) + 1
+            their_agents = len(target_agent.agents_in_my_formation) + 1
+            if self.pos[1] > target_agent.pos[1]:
+                A = self.pos
+                B = target_agent.pos
+            else:
+                B = self.pos
+                A = target_agent.pos
+            AB = ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
+            w_a = self.kent_weights(my_agents)
+            w_b = self.kent_weights(their_agents)
+            w_c = self.kent_weights(my_agents+their_agents)
+            AX = (AB/w_c)*w_b
+            BX = (AB/w_c) * w_a
+            alpha = math.acos(-(AX**2-BX**2-AB**2)/(2*AX*AB))
+            beta = (alpha/AX) * BX
+            phi = math.atan((abs(B[1]-A[1]))/(abs(B[0]-A[0])))
+            gamma = math.pi-beta-phi
+            X = [A[0]-AX*math.cos(gamma), A[1] - AX * math.sin(gamma)]
+            C = self.find_leaving_point(target_agent)
 
-        centre, radius = self.three_point_circle(A, B, X)
-        m = (C[1]-X[1])/(C[0]-X[0])
-        b = X[1] - m*X[0]
-        coeff1 = 1+m**2
-        coeff2 = -2*centre[0]+2*m*(b-centre[1])
-        coeff3 = centre[0]**2 + (b-centre[1])**2 - radius**2
-        coeff = [coeff1, coeff2, coeff3]
-        roots = np.roots(coeff)
-        best_root = []
-        for root in roots:
-            if len(best_root) == 0:
-                best_root.append(root)
-            elif root > best_root[0]:
-                best_root[0] = root
-        x_P = best_root[0]
-        y_P = m*x_P + b
-        return [x_P, y_P]
+            centre, radius = self.three_point_circle(A, B, X)
+            m = (C[1]-X[1])/(C[0]-X[0])
+            b = X[1] - m*X[0]
+            coeff1 = 1+m**2
+            coeff2 = -2*centre[0]+2*m*(b-centre[1])
+            coeff3 = centre[0]**2 + (b-centre[1])**2 - radius**2
+            coeff = [coeff1, coeff2, coeff3]
+            roots = np.roots(coeff)
+            best_root = []
+            for root in roots:
+                if len(best_root) == 0:
+                    best_root.append(root)
+                elif root > best_root[0]:
+                    best_root[0] = root
+            x_P = best_root[0]
+            y_P = m*x_P + b
+
+            if x_P == 0 or y_P <= 0:
+                raise ValueError
+            else:
+                return [x_P, y_P]
+
+        except (ValueError, FloatingPointError):
+            x_P, y_P = self.calc_middle_point(self.pos, target_agent.pos)
+            return [x_P, y_P]
 
     def find_leaving_point(self, target_agent):
-        my_agents = len(self.agents_in_my_formation) + 1
-        their_agents = len(target_agent.agents_in_my_formation) + 1
-        if self.destination[1] > target_agent.destination[1]:
-            A = self.destination
-            B = target_agent.destination
-        else:
-            B = self.destination
-            A = target_agent.destination
-        AB = ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
-        w_a = 1 # TODO make a separable formation at leaving
-        w_b = 1
-        w_c = self.kent_weights(my_agents + their_agents)
-        AX = (AB / w_c) * w_b
-        BX = (AB / w_c) * w_a
-        alpha = math.acos(-(AX ** 2 - BX ** 2 - AB ** 2) / (2 * AX * AB))
-        beta = (alpha / AX) * BX
-        phi = math.atan((abs(B[1] - A[1])) / (abs(B[0] - A[0])))
-        gamma = math.pi - beta - phi
-        X = [A[0] - AX * math.cos(gamma), A[1] - AX * math.sin(gamma)]
-        C = self.calc_middle_point(self.pos, target_agent.pos)
+        try:
+            my_agents = len(self.agents_in_my_formation) + 1
+            their_agents = len(target_agent.agents_in_my_formation) + 1
+            if self.destination[1] > target_agent.destination[1]:
+                A = self.destination
+                B = target_agent.destination
+            else:
+                B = self.destination
+                A = target_agent.destination
+            AB = ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
+            w_a = 1 # TODO make a separable formation at leaving
+            w_b = 1
+            w_c = self.kent_weights(my_agents + their_agents)
+            AX = (AB / w_c) * w_b
+            BX = (AB / w_c) * w_a
+            alpha = math.acos(-(AX ** 2 - BX ** 2 - AB ** 2) / (2 * AX * AB))
+            beta = (alpha / AX) * BX
+            phi = math.atan((abs(B[1] - A[1])) / (abs(B[0] - A[0])))
+            gamma = math.pi - beta - phi
+            X = [A[0] - AX * math.cos(gamma), A[1] - AX * math.sin(gamma)]
+            C = self.calc_middle_point(self.pos, target_agent.pos)
 
-        centre, radius = self.three_point_circle(A, B, X)
-        m = (C[1] - X[1]) / (C[0] - X[0])
-        b = X[1] - m * X[0]
-        coeff1 = 1 + m ** 2
-        coeff2 = -2 * centre[0] + 2 * m * (b - centre[1])
-        coeff3 = centre[0] ** 2 + (b - centre[1]) ** 2 - radius ** 2
-        coeff = [coeff1, coeff2, coeff3]
-        roots = np.roots(coeff)
-        best_root = []
-        for root in roots:
-            if len(best_root) == 0:
-                best_root.append(root)
-            elif root > best_root[0]:
-                best_root[0] = root
-        x_P = best_root[0]
-        y_P = m * x_P + b
-        return [x_P, y_P]
+            centre, radius = self.three_point_circle(A, B, X)
+            m = (C[1] - X[1]) / (C[0] - X[0])
+            b = X[1] - m * X[0]
+            coeff1 = 1 + m ** 2
+            coeff2 = -2 * centre[0] + 2 * m * (b - centre[1])
+            coeff3 = centre[0] ** 2 + (b - centre[1]) ** 2 - radius ** 2
+            coeff = [coeff1, coeff2, coeff3]
+            roots = np.roots(coeff)
+            best_root = []
+            for root in roots:
+                if len(best_root) == 0:
+                    best_root.append(root)
+                elif root > best_root[0]:
+                    best_root[0] = root
+            x_P = best_root[0]
+            y_P = m * x_P + b
+
+            if x_P == 0 or y_P <= 0:
+                raise ValueError
+            else:
+                return [x_P, y_P]
+
+        except (ValueError, FloatingPointError):
+            x_P, y_P = self.calc_middle_point(self.destination, target_agent.destination)
+            return [x_P, y_P]
+
 
 
     # =========================================================================
@@ -677,12 +699,11 @@ class Flight(Agent):
     #
     #   !!! TODO Exc. 1.3: improve calculation joining/leaving point.!!!
     # =========================================================================
-    def calc_speed_to_point(self, target_agent):
+    def calc_speed_to_joining_point(self, target_agent):
 
         joining_point = self.find_joining_point(target_agent)
         dist_self = ((joining_point[0] - self.pos[0]) ** 2 + (joining_point[1] - self.pos[1]) ** 2) ** 0.5
-        dist_target = ((joining_point[0] - target_agent.pos[0]) ** 2 + (
-                joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
+        dist_target = ((joining_point[0] - target_agent.pos[0]) ** 2 + (joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
 
         if dist_self >= dist_target:
             own_speed = self.max_speed
