@@ -28,9 +28,9 @@ def do_CNP(flight):
                         positive_savings.append(
                             {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
 
-            sorted(positive_savings, key=lambda i: i["fuel_saved"])
+            sorted_savings = sorted(positive_savings, key=lambda i: i["fuel_saved"], reverse=True)
             if positive_savings:
-                best_offer = list(positive_savings[0].values())
+                best_offer = list(sorted_savings[0].values())
                 flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
 
         elif not targets and flight.model.schedule.steps >= flight.departure_time + 50:
@@ -42,8 +42,8 @@ def do_CNP(flight):
     if flight.manager and flight.accepting_bids:
         if flight.received_bids:
             received_bids = flight.received_bids
-            sorted(received_bids, key=lambda i: i["time_to_join"], reverse=True)
-            for bid in received_bids:
+            sorted_bids = sorted(received_bids, key=lambda i: i["time_to_join"])
+            for bid in sorted_bids:
                 bid = list(bid.values())
                 if flight.model.schedule.steps <= bid[3]:
                     if (not flight.agents_in_my_formation) and (not bid[0].agents_in_my_formation):
@@ -76,8 +76,7 @@ def do_CNP(flight):
                 if fuel_saved > 0:
                     positive_savings.append(
                         {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
-                sorted(positive_savings, key=lambda i: i["fuel_saved"])
+                sorted_savings = sorted(positive_savings, key=lambda i: i["fuel_saved"], reverse=True)
                 if positive_savings:
-                    print("I'm making a bid")
-                    best_offer = list(positive_savings[0].values())
+                    best_offer = list(sorted_savings[0].values())
                     flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
