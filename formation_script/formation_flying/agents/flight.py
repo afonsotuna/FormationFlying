@@ -22,13 +22,6 @@ from ..negotiations.CNP import do_CNP
 import math
 
 
-def calc_distance(p1, p2):
-    # p1 = tuple(p1)
-    # p2 = tuple(p2)
-    dist = (((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5)
-    return dist
-
-
 class Flight(Agent):
 
     # =========================================================================
@@ -77,7 +70,7 @@ class Flight(Agent):
         self.leaving_point = [-10, -10]
         self.joining_point = [-10, -10]
 
-        self.planned_fuel = calc_distance(self.pos, self.destination)
+        self.planned_fuel = self.distance_between_points(self.pos, self.destination)
         self.model.total_planned_fuel += self.planned_fuel
 
         self.fuel_consumption = 0  # A counter which counts the fuel consumed
@@ -183,14 +176,14 @@ class Flight(Agent):
             joining_point = self.find_joining_point(target_agent)
             leaving_point = self.find_leaving_point(target_agent)
 
-            original_distance = calc_distance(self.pos, self.destination) + calc_distance(target_agent.pos,
+            original_distance = self.distance_between_points(self.pos, self.destination) + self.distance_between_points(target_agent.pos,
                                                                                           target_agent.destination)
 
-            added_distance_agent1 = calc_distance(self.pos, joining_point) + calc_distance(leaving_point,
+            added_distance_agent1 = self.distance_between_points(self.pos, joining_point) + self.distance_between_points(leaving_point,
                                                                                            self.destination)
-            added_distance_agent2 = calc_distance(target_agent.pos, joining_point) + calc_distance(
+            added_distance_agent2 = self.distance_between_points(target_agent.pos, joining_point) + self.distance_between_points(
                 target_agent.destination, leaving_point)
-            formation_distance = calc_distance(leaving_point, joining_point) * 2
+            formation_distance = self.distance_between_points(leaving_point, joining_point) * 2
 
             new_total_distance = self.model.fuel_reduction * formation_distance + added_distance_agent1 + added_distance_agent2
 
@@ -233,22 +226,22 @@ class Flight(Agent):
             leaving_point = formation_leader.leaving_point
 
             # Fuel for leader
-            new_distance_formation = calc_distance(formation_leader.pos, joining_point) + calc_distance(joining_point,
+            new_distance_formation = self.distance_between_points(formation_leader.pos, joining_point) + self.distance_between_points(joining_point,
                                                                                                         leaving_point)
             total_fuel_formation = self.model.fuel_reduction * n_agents_in_formation * new_distance_formation
 
-            original_distance_formation = calc_distance(formation_leader.pos, leaving_point)
+            original_distance_formation = self.distance_between_points(formation_leader.pos, leaving_point)
             original_fuel_formation = self.model.fuel_reduction * n_agents_in_formation * original_distance_formation
 
             fuel_savings_formation = original_fuel_formation - total_fuel_formation
 
             # Fuel for new agent
-            fuel_to_joining_joiner = calc_distance(self.pos, joining_point)
-            fuel_in_formation_joiner = calc_distance(joining_point, leaving_point) * self.model.fuel_reduction
-            fuel_from_leaving_joiner = calc_distance(leaving_point, formation_joiner.destination)
+            fuel_to_joining_joiner = self.distance_between_points(self.pos, joining_point)
+            fuel_in_formation_joiner = self.distance_between_points(joining_point, leaving_point) * self.model.fuel_reduction
+            fuel_from_leaving_joiner = self.distance_between_points(leaving_point, formation_joiner.destination)
             total_fuel_joiner = fuel_to_joining_joiner + fuel_in_formation_joiner + fuel_from_leaving_joiner
 
-            original_fuel_joiner = calc_distance(formation_joiner.pos, formation_joiner.destination)
+            original_fuel_joiner = self.distance_between_points(formation_joiner.pos, formation_joiner.destination)
 
             fuel_savings_joiner = original_fuel_joiner - total_fuel_joiner
 
@@ -502,6 +495,9 @@ class Flight(Agent):
         # 
         return ((destination[0] - self.pos[0]) ** 2 + (destination[1] - self.pos[1]) ** 2) ** 0.5
 
+    def distance_between_points(self, A, B):
+        return ((A[0] - B[0]) ** 2 + (A[1] - A[1]) ** 2) ** 0.5
+
     def kent_weights(self, n_agents):
         return -0.0017*n_agents**3 + 0.0277*n_agents**2 - 0.1639*n_agents + 1.1357
 
@@ -519,35 +515,29 @@ class Flight(Agent):
         radius = ((cx - b[0]) ** 2 + (cy - b[1]) ** 2) ** .5
         return [cx, cy], radius
 
-    def find_joining_point(self, target_agent):
+    def kent_joining_formula(self, target_agent, A, B):
         try:
             my_agents = len(self.agents_in_my_formation) + 1
             their_agents = len(target_agent.agents_in_my_formation) + 1
-            if self.pos[1] > target_agent.pos[1]:
-                A = self.pos
-                B = target_agent.pos
-            else:
-                B = self.pos
-                A = target_agent.pos
             AB = ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
             w_a = self.kent_weights(my_agents)
             w_b = self.kent_weights(their_agents)
-            w_c = self.kent_weights(my_agents+their_agents)
-            AX = (AB/w_c)*w_b
-            BX = (AB/w_c) * w_a
-            alpha = math.acos(-(AX**2-BX**2-AB**2)/(2*AX*AB))
-            beta = (alpha/AX) * BX
-            phi = math.atan((abs(B[1]-A[1]))/(abs(B[0]-A[0])))
-            gamma = math.pi-beta-phi
-            X = [A[0]-AX*math.cos(gamma), A[1] - AX * math.sin(gamma)]
+            w_c = self.kent_weights(my_agents + their_agents)
+            AX = (AB / w_c) * w_b
+            BX = (AB / w_c) * w_a
+            alpha = math.acos(-(AX ** 2 - BX ** 2 - AB ** 2) / (2 * AX * AB))
+            beta = (alpha / AX) * BX
+            phi = math.atan((abs(B[1] - A[1])) / (abs(B[0] - A[0])))
+            gamma = math.pi - beta - phi
+            X = [A[0] - AX * math.cos(gamma), A[1] - AX * math.sin(gamma)]
             C = self.find_leaving_point(target_agent)
 
             centre, radius = self.three_point_circle(A, B, X)
-            m = (C[1]-X[1])/(C[0]-X[0])
-            b = X[1] - m*X[0]
-            coeff1 = 1+m**2
-            coeff2 = -2*centre[0]+2*m*(b-centre[1])
-            coeff3 = centre[0]**2 + (b-centre[1])**2 - radius**2
+            m = (C[1] - X[1]) / (C[0] - X[0])
+            b = X[1] - m * X[0]
+            coeff1 = 1 + m ** 2
+            coeff2 = -2 * centre[0] + 2 * m * (b - centre[1])
+            coeff3 = centre[0] ** 2 + (b - centre[1]) ** 2 - radius ** 2
             coeff = [coeff1, coeff2, coeff3]
             roots = np.roots(coeff)
             best_root = []
@@ -557,7 +547,7 @@ class Flight(Agent):
                 elif root > best_root[0]:
                     best_root[0] = root
             x_P = best_root[0]
-            y_P = m*x_P + b
+            y_P = m * x_P + b
 
             if x_P == 0 or y_P <= 0:
                 raise ValueError
@@ -568,16 +558,10 @@ class Flight(Agent):
             x_P, y_P = self.calc_middle_point(self.pos, target_agent.pos)
             return [x_P, y_P]
 
-    def find_leaving_point(self, target_agent):
+    def kent_leaving_formula(self, target_agent, A, B):
         try:
             my_agents = len(self.agents_in_my_formation) + 1
             their_agents = len(target_agent.agents_in_my_formation) + 1
-            if self.destination[1] > target_agent.destination[1]:
-                A = self.destination
-                B = target_agent.destination
-            else:
-                B = self.destination
-                A = target_agent.destination
             AB = ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
             w_a = 1 # TODO make a separable formation at leaving
             w_b = 1
@@ -616,6 +600,26 @@ class Flight(Agent):
         except (ValueError, FloatingPointError):
             x_P, y_P = self.calc_middle_point(self.destination, target_agent.destination)
             return [x_P, y_P]
+
+    def find_joining_point(self, target_agent):
+        x_1, y_1 = self.kent_joining_formula(target_agent, target_agent.pos, self.pos)
+        x_2, y_2 = self.kent_joining_formula(target_agent, self.pos, target_agent.pos)
+        distance_1 = self.distance_to_destination([x_1, y_1]) + target_agent.distance_to_destination([x_1, y_1])
+        distance_2 = self.distance_to_destination([x_2, y_2]) + target_agent.distance_to_destination([x_2, y_2])
+        if distance_1 <= distance_2:
+            return [x_1, y_1]
+        else:
+            return [x_2, y_2]
+
+    def find_leaving_point(self, target_agent):
+        x_1, y_1 = self.kent_leaving_formula(target_agent, target_agent.pos, self.pos)
+        x_2, y_2 = self.kent_leaving_formula(target_agent, self.pos, target_agent.pos)
+        distance_1 = self.distance_between_points([x_1, y_1], self.destination) + target_agent.distance_between_points([x_1, y_1], target_agent.destination)
+        distance_2 = self.distance_between_points([x_2, y_2], self.destination) + target_agent.distance_between_points([x_2, y_2], target_agent.destination)
+        if distance_1 <= distance_2:
+            return [x_1, y_1]
+        else:
+            return [x_2, y_2]
 
 
 
