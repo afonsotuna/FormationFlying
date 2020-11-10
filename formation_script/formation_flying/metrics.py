@@ -31,6 +31,9 @@ def total_deal_value(model):
 def compute_total_flight_time(model):
     return model.total_flight_time
 
+def average_delay(model):
+    return model.total_delay/model.n_flights
+
 
 def compute_model_steps(model):
     return model.schedule.steps

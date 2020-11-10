@@ -71,6 +71,7 @@ class Flight(Agent):
         self.joining_point = [-10, -10]
 
         self.planned_fuel = self.distance_between_points(self.pos, self.destination)
+        self.planned_time = self.distance_between_points(self.pos, self.destination)/self.speed
         self.model.total_planned_fuel += self.planned_fuel
 
         self.fuel_consumption = 0  # A counter which counts the fuel consumed
@@ -95,15 +96,14 @@ class Flight(Agent):
         self.accepting_bids = 0
         self.received_bids = []
         self.formation_role = False
+        self.auctioneer = False
 
         if self.become_manager():
             self.model.manager_counter += 1
             self.manager = True
-            self.auctioneer = False
             self.accepting_bids = 1
         else:
             self.manager = False
-            self.auctioneer = False
             self.accepting_bids = 0
 
     # =============================================================================
@@ -249,6 +249,22 @@ class Flight(Agent):
 
         return fuel_savings
 
+    # =============================================================================
+    #   This formula calculated the delay incurred by aircraft A to join aircraft B
+    #
+    #   !!! TODO Review!!!
+    # =============================================================================
+    def calculate_delay(self, target_agent):
+        time_from_position = self.distance_between_points(self.pos, self.destination)/self.speed
+        joining_point = self.find_joining_point(target_agent)
+        leaving_point = self.find_leaving_point(target_agent)
+        time_to_meet = self.distance_between_points(self.pos, joining_point)/self.speed
+        time_cruise = self.distance_between_points(joining_point, leaving_point)/self.speed
+        time_approach = self.distance_between_points(leaving_point, self.destination)/self.speed
+        time_if_formation = time_to_meet+time_cruise+time_approach
+        delay = time_if_formation-time_from_position
+        return delay
+
     # =========================================================================
     #   Add the chosen flight to the formation. While flying to the joining point 
     #   of a new formation, managers temporarily don't accept any new bids.
@@ -299,14 +315,20 @@ class Flight(Agent):
             target_agent.formation_state = 1
             target_agent.agents_in_my_formation = my_agents[:]
 
+            my_delay = self.calculate_delay(target_agent)
+            self.model.total_delay += my_delay
+
             for agent in my_agents:
                 agent.joining_point = self.joining_point
                 agent.leaving_point = self.leaving_point
                 agent.speed_to_joining = self.speed_to_joining
+                agent.model.total_delay += my_delay
                 agent.formation_state = 4
+
 
             target_agent.joining_point = self.joining_point
             target_agent.leaving_point = self.leaving_point
+            target_agent.model.total_delay += target_agent.calculate_delay(self)
 
         elif len(target_agent.agents_in_my_formation) > 0 and len(self.agents_in_my_formation) > 0:
             self.model.formation_counter -= 1
@@ -348,16 +370,24 @@ class Flight(Agent):
                     agent.agents_in_my_formation.append(target)
                 agent.formation_state = 4
 
+            my_delay = self.calculate_delay(target_agent)
+            self.model.total_delay += my_delay
+
             for agent in my_agents:
                 agent.joining_point = self.joining_point
                 agent.leaving_point = self.leaving_point
                 agent.speed_to_joining = self.speed_to_joining
+                agent.model.total_delay += my_delay
+
+            their_delay = target_agent.calculate_delay(self)
+            target_agent.model.total_delay += their_delay
 
             for agent in their_agents:
                 agent.joining_point = self.joining_point
                 agent.leaving_point = self.leaving_point
                 if not agent == target_agent:
                     agent.speed_to_joining = target_agent.speed_to_joining
+                    agent.model.total_delay += their_delay
 
             target_agent.formation_role = "slave"
 
@@ -378,6 +408,9 @@ class Flight(Agent):
         self.model.fuel_savings_closed_deals += self.calculate_potential_fuelsavings(target_agent)
         self.deal_value += bid_value
         target_agent.deal_value -= bid_value
+
+        self.model.total_delay += self.calculate_delay(target_agent)
+        target_agent.model.total_delay += target_agent.calculate_delay(self)
 
         self.accepting_bids = False
         self.formation_role = "master"

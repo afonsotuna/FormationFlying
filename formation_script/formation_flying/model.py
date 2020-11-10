@@ -99,6 +99,7 @@ class FormationFlying(Model):
 
         self.total_fuel_consumption = 0
         self.total_flight_time = 0
+        self.total_delay = 0
 
         self.origin_list = []
         self.destination_list = []
