@@ -110,7 +110,7 @@ class Flight(Agent):
             self.accepting_bids = 1
         else:
             self.manager = False
-            self.auctioneer = True
+            self.auctioneer = False
             self.accepting_bids = 0
 
     # =============================================================================

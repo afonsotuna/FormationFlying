@@ -32,9 +32,9 @@ def boid_draw(agent):
             return {"Shape": "circle", "r": 1, "Filled": "true", "Color": "Red"}
         elif agent.state == "flying":
             if (agent.formation_state == 0 or agent.formation_state == 3):
-                if agent.auctioneer:
+                if agent.auctioneer or agent.manager:
                     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Red"}
-                elif agent.manager:
+                else:
                     return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Pink"}
             elif agent.formation_state == 4:
                 return {"Shape": "circle", "r": 2, "Filled": "true", "Color": "Yellow"}
