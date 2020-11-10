@@ -78,5 +78,6 @@ def do_CNP(flight):
                         {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
                 sorted(positive_savings, key=lambda i: i["fuel_saved"])
                 if positive_savings:
+                    print("I'm making a bid")
                     best_offer = list(positive_savings[0].values())
                     flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
