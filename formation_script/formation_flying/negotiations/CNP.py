@@ -12,7 +12,7 @@ def do_CNP(flight):
     delta_T = 5  # Steps after which a bid expires
 
     # Behaviour of a contractor
-    if flight.auctioneer and flight.formation_state == 0:
+    if not flight.manager and flight.formation_state == 0:
         targets = flight.find_CNP_candidate()
 
         if targets:
@@ -34,7 +34,6 @@ def do_CNP(flight):
                 flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
 
         elif not targets and flight.model.schedule.steps >= flight.departure_time + 50:
-            flight.auctioneer = False
             flight.manager = True
             flight.accepting_bids = True
             flight.formation_merges = 0
@@ -61,12 +60,10 @@ def do_CNP(flight):
             neighbors = flight.find_CNP_candidate()
             if neighbors:
                 flight.manager = False
-                flight.auctioneer = True
                 flight.accepting_bids = False
 
     # Behaviour of a manager in-formation (bidding to join other formations)
-    if flight.formation_role == "master" and flight.formation_state == 2 and (not flight.received_bids) and flight.model.schedule.steps % 5 == 0 and flight.model.schedule.steps >= 300:
-        print("I'm looking for candidates")
+    if flight.formation_role == "master" and flight.formation_state == 2 and (not flight.received_bids) and flight.model.schedule.steps % 5 == 0:
         candidates = flight.find_formation_candidates()
         if candidates:
             positive_savings = []
@@ -81,6 +78,5 @@ def do_CNP(flight):
                         {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
                 sorted(positive_savings, key=lambda i: i["fuel_saved"])
                 if positive_savings:
-                    print("I'm making a bid")
                     best_offer = list(positive_savings[0].values())
                     flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.model.schedule.steps + delta_T)
