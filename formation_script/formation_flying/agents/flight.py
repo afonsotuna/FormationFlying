@@ -632,9 +632,9 @@ class Flight(Agent):
             if self.formation_state == 2:
                 if self.formation_role != "master":
                     # If in formation, and not the master, fuel consumption is 75% of normal fuel consumption.
-                    f_c = self.model.fuel_reduction * self.speed
+                    f_c = self.model.fuel_reduction * self.speed #TODO
                 elif self.formation_role == "master":
-                    f_c = self.speed
+                    f_c = self.speed#TODO
                 self.heading = [self.leaving_point[0] - self.pos[0], self.leaving_point[1] - self.pos[1]]
                 self.heading /= np.linalg.norm(self.heading)
                 new_pos = self.pos + self.heading * self.speed
@@ -644,9 +644,9 @@ class Flight(Agent):
                 # While on its way to join a new formation
                 if self.formation_state == 4 and len(
                         self.agents_in_my_formation) > 0 and self.formation_role != "master":
-                    f_c = self.speed_to_joining * self.model.fuel_reduction
+                    f_c = self.speed_to_joining * self.model.fuel_reduction#TODO
                 else:
-                    f_c = self.speed_to_joining
+                    f_c = self.speed_to_joining#TODO
 
                 self.heading = [self.joining_point[0] - self.pos[0], self.joining_point[1] - self.pos[1]]
                 self.heading /= np.linalg.norm(self.heading)
@@ -657,12 +657,13 @@ class Flight(Agent):
                 f_c = self.speed
                 self.heading /= np.linalg.norm(self.heading)
                 new_pos = self.pos + self.heading * self.speed
+                
 
             if f_c < 0:
                 raise Exception("Fuel cost lower than 0")
 
-            self.model.total_fuel_consumption += f_c
-            self.fuel_consumption += f_c
+            self.model.total_fuel_consumption += f_c #TODO
+            self.fuel_consumption += f_c #TODO
 
             self.model.space.move_agent(self, new_pos)
 

@@ -42,7 +42,7 @@ def do_CNP(flight):
             flight.accepting_bids = True
             flight.formation_merges = 0
 
-    # Behaviour of a manager (receiving bids or becoming a contractor)
+    # Behaviour of a manager (recedusiving bids or becoming a contractor)
     if flight.manager and flight.accepting_bids:
         if flight.received_bids:
             received_bids = flight.received_bids
