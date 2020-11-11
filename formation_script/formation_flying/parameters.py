@@ -39,7 +39,7 @@ max_steps = 10000
 n_iterations = 2
 
 model_params = {
-    "n_flights": 7,
+    "n_flights": 5,
     "n_origin_airports": 20,
     "n_destination_airports": 20,
     "communication_range": 200, #[km]
@@ -71,6 +71,7 @@ model_reporter_parameters={"Total Fuel Used": compute_total_fuel_used,
                            "Total saved potential saved fuel": fuel_savings_closed_deals, 
                            "Real saved fuel": real_fuel_saved,
                            "Average delay": average_delay,
+                           "Fuel saving ratio": fuel_saving_ratio,
                            "Deal values": total_deal_value}
 
 # In order to collect values like "deal-value", they should be specified on all agents.

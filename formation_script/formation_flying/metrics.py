@@ -53,3 +53,6 @@ def formation_counter(model):
 
 def manager_counter(model):
     return model.manager_counter / model.n_flights
+
+def fuel_saving_ratio(model):
+    return model.total_fuel_consumption/model.total_planned_fuel

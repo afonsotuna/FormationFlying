@@ -70,7 +70,8 @@ class Flight(Agent):
         self.leaving_point = [-10, -10]
         self.joining_point = [-10, -10]
 
-        self.planned_fuel = self.distance_between_points(self.pos, self.destination)
+        self.planned_distance = self.distance_between_points(self.pos, self.destination)
+        self.planned_fuel = self.distance_between_points(self.pos, self.destination) * self.fuel_flow(self.speed)
         self.planned_time = self.distance_between_points(self.pos, self.destination) / self.speed
         self.model.total_planned_fuel += self.planned_fuel
 
@@ -177,16 +178,10 @@ class Flight(Agent):
             leaving_point = self.find_leaving_point(target_agent)
             own_join_speed, target_join_speed = self.calc_speed_to_joining_point(target_agent)
 
-            original_my_fuel = self.distance_between_points(self.pos, self.destination) / self.speed * self.fuel_flow(
-                self.speed)
+            original_my_fuel = self.distance_between_points(self.pos, self.destination) * self.fuel_flow(self.speed)
 
-            added_fuel_to_join = self.distance_between_points(self.pos,
-                                                              joining_point) / own_join_speed * self.fuel_flow(
-                own_join_speed) + self.distance_between_points(leaving_point,
-                                                               self.destination) / self.speed * self.fuel_flow(
-                self.speed)
-            formation_fuel = self.distance_between_points(leaving_point, joining_point) / self.speed * self.fuel_flow(
-                self.speed, follower=True)
+            added_fuel_to_join = self.distance_between_points(self.pos,joining_point) * self.fuel_flow(own_join_speed) + self.distance_between_points(leaving_point,self.destination) * self.fuel_flow(self.speed)
+            formation_fuel = self.distance_between_points(leaving_point, joining_point) * self.fuel_flow(self.speed, follower=True)
 
             new_total_fuel = added_fuel_to_join + formation_fuel
 
@@ -228,27 +223,16 @@ class Flight(Agent):
             leaving_point = formation_leader.leaving_point
             own_join_speed, target_join_speed = self.calc_speed_to_joining_point(target_agent)
 
-            original_fuel_joiner = self.distance_between_points(formation_joiner.pos,
-                                                                formation_joiner.destination) / formation_joiner.speed * formation_joiner.fuel_flow(
-                formation_joiner.speed)
+            original_fuel_joiner = self.distance_between_points(formation_joiner.pos,formation_joiner.destination) * formation_joiner.fuel_flow(formation_joiner.speed)
             # Fuel for new agent
-            fuel_to_joining_joiner = self.distance_between_points(formation_joiner.pos,
-                                                                  joining_point) / own_join_speed * formation_joiner.fuel_flow(
-                own_join_speed) * (1 + n_agents_in_my_formation)
-            fuel_in_formation_joiner = self.distance_between_points(joining_point,
-                                                                    leaving_point) / formation_joiner.speed * formation_joiner.fuel_flow(
-                formation_joiner.speed, follower=True) * (1 + n_agents_in_my_formation)
-            fuel_from_leaving_joiner = self.distance_between_points(leaving_point,
-                                                                    formation_joiner.destination) / formation_joiner.speed * formation_joiner.fuel_flow(
-                formation_joiner.speed)
+            fuel_to_joining_joiner = self.distance_between_points(formation_joiner.pos,joining_point) * formation_joiner.fuel_flow(own_join_speed) * (1 + n_agents_in_my_formation)
+            fuel_in_formation_joiner = self.distance_between_points(joining_point,leaving_point) * formation_joiner.fuel_flow(formation_joiner.speed, follower=True) * (1 + n_agents_in_my_formation)
+            fuel_from_leaving_joiner = self.distance_between_points(leaving_point,formation_joiner.destination) * formation_joiner.fuel_flow(formation_joiner.speed)
             for agent in self.agents_in_my_formation:
-                fuel_from_leaving_joiner += self.distance_between_points(leaving_point,
-                                                                         agent.destination) / agent.speed * agent.fuel_flow(
-                    agent.speed)
+                fuel_from_leaving_joiner += self.distance_between_points(leaving_point,agent.destination) * agent.fuel_flow(agent.speed)
             total_fuel_joiner = fuel_to_joining_joiner + fuel_in_formation_joiner + fuel_from_leaving_joiner
 
-            fuel_savings_joiner = original_fuel_joiner * (
-                        1 + n_agents_in_my_formation * self.model.fuel_reduction) - total_fuel_joiner
+            fuel_savings_joiner = original_fuel_joiner * (1 + n_agents_in_my_formation * self.model.fuel_reduction) - total_fuel_joiner
 
             fuel_savings = fuel_savings_joiner
 
@@ -686,9 +670,9 @@ class Flight(Agent):
             if self.formation_state == 2:
                 if self.formation_role != "master":
                     # If in formation, and not the master, fuel consumption is 75% of normal fuel consumption.
-                    f_c = self.fuel_flow(self.speed, follower=True)
+                    f_c = self.speed * self.fuel_flow(self.speed, follower=True)
                 elif self.formation_role == "master":
-                    f_c = self.fuel_flow(self.speed)
+                    f_c = self.speed * self.fuel_flow(self.speed)
                 self.heading = [self.leaving_point[0] - self.pos[0], self.leaving_point[1] - self.pos[1]]
                 self.heading /= np.linalg.norm(self.heading)
                 new_pos = self.pos + self.heading * self.speed
@@ -698,9 +682,9 @@ class Flight(Agent):
                 # While on its way to join a new formation
                 if self.formation_state == 4 and len(
                         self.agents_in_my_formation) > 0 and self.formation_role != "master":
-                    f_c = self.fuel_flow(self.speed_to_joining, follower=True)
+                    f_c = self.speed_to_joining*self.fuel_flow(self.speed_to_joining, follower=True)
                 else:
-                    f_c = self.fuel_flow(self.speed_to_joining)
+                    f_c = self.speed_to_joining*self.fuel_flow(self.speed_to_joining)
 
                 self.heading = [self.joining_point[0] - self.pos[0], self.joining_point[1] - self.pos[1]]
                 self.heading /= np.linalg.norm(self.heading)
@@ -708,7 +692,7 @@ class Flight(Agent):
 
             else:
                 self.heading = [self.destination[0] - self.pos[0], self.destination[1] - self.pos[1]]
-                f_c = self.fuel_flow(self.speed)
+                f_c = self.speed*self.fuel_flow(self.speed)
                 self.heading /= np.linalg.norm(self.heading)
                 new_pos = self.pos + self.heading * self.speed
 
