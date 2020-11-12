@@ -19,6 +19,7 @@ from mesa import Agent
 from .airports import Airport
 from ..negotiations.greedy import do_greedy  # !!! Don't forget the others.
 from ..negotiations.CNP import do_CNP
+from ..negotiations.japanese import do_Japanese
 import math
 
 
@@ -97,15 +98,20 @@ class Flight(Agent):
         self.accepting_bids = 0
         self.received_bids = []
         self.formation_role = False
-        self.auctioneer = False
+        self.highest_bid = 0
+        self.bid_made = False
+        self.highest_bidder = 0
+        self.auctioneer_target = 0
 
         if self.become_manager():
             self.model.manager_counter += 1
             self.manager = True
-            self.accepting_bids = 1
+            self.auctioneer = True
+            self.accepting_bids = True
         else:
             self.manager = False
-            self.accepting_bids = 0
+            self.auctioneer = False
+            self.accepting_bids = False
 
     # =============================================================================
     #   Defines if an agent should become a manager or not
@@ -162,8 +168,8 @@ class Flight(Agent):
             #     do_English(self)
             # if self.model.negotiation_method == 3:
             #     do_Vickrey(self)
-            # if self.model.negotiation_method == 4:
-            #     do_Japanese(self)
+            if self.model.negotiation_method == 4:
+                do_Japanese(self)
 
     # =============================================================================
     #   This formula assumes that the route of both agents are of same length, 
@@ -472,11 +478,22 @@ class Flight(Agent):
                         candidates.append(agent)
         return candidates
 
+    def find_auction_candidates(self):
+        neighbors = self.model.space.get_neighbors(pos=self.pos, radius=self.communication_range, include_center=True)
+        candidates = []
+        for agent in neighbors:
+            if type(agent) is Flight and agent.accepting_bids:
+                if (agent.formation_state == 0 and agent.auctioneer) or (
+                        agent.formation_state == 2 and agent.formation_role == "master"):
+                    if not self == agent:
+                        candidates.append(agent)
+        return candidates
+
     # =========================================================================
     #   Making the bid.
     # =========================================================================
-    def make_bid(self, bidding_target, fuel_saved, time_to_join, bid_expiration_date):
-        bid = {"bidding_agent": self, "fuel_saved": fuel_saved, "time_to_join": time_to_join,
+    def make_bid(self, bidding_target, fuel_saved, time_to_join, alliance_status, bid_expiration_date):
+        bid = {"bidding_agent": self, "fuel_saved": fuel_saved, "time_to_join": time_to_join, "alliance": alliance_status,
                "exp_date": bid_expiration_date}
         bidding_target.received_bids.append(bid)
 
