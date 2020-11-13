@@ -49,7 +49,7 @@ model_params = {
     "max_speed": 0.500,
     "fuel_reduction": 0.75,
     "alliance_ratio": 0.30,
-    "negotiation_method": 4,
+    "negotiation_method": 3,
     "departure_window": 3,
     "origin_airport_x": [0.01, 0.3], 
     "origin_airport_y": [0.01, 0.3],

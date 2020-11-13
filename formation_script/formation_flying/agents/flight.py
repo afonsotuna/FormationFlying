@@ -20,6 +20,7 @@ from .airports import Airport
 from ..negotiations.greedy import do_greedy  # !!! Don't forget the others.
 from ..negotiations.CNP import do_CNP
 from ..negotiations.japanese import do_Japanese
+from ..negotiations.vickrey import do_Vickrey
 import math
 
 
@@ -166,8 +167,8 @@ class Flight(Agent):
                 do_CNP(self)
             # if self.model.negotiation_method == 2:
             #     do_English(self)
-            # if self.model.negotiation_method == 3:
-            #     do_Vickrey(self)
+            if self.model.negotiation_method == 3:
+                do_Vickrey(self)
             if self.model.negotiation_method == 4:
                 do_Japanese(self)
 
