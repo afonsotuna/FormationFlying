@@ -22,9 +22,9 @@ def do_Japanese(flight):
                 flight.highest_bid = sorted_bids[0]
                 flight.turn_count = 0
                 flight.accepting_bids = False
-            while len(flight.received_bids) > 1:
+            if len(flight.received_bids) > 1:
                 current_high = list(flight.highest_bid.values())
-                new_desired = current_high[5]*1.05
+                new_desired = current_high[5]+abs(current_high[5]*0.05)
                 flight.turn_count += 1
                 for bid in flight.received_bids:
                     current_bid = list(bid.values())
@@ -32,6 +32,8 @@ def do_Japanese(flight):
                         flight.received_bids.remove(bid)
                         current_bid[0].bid_made = False
                         current_bid[0].auctioneer_target = 0
+                sorted_bids = sorted(flight.received_bids, key=lambda i: i["score"])
+                flight.highest_bid = sorted_bids[0]
             if len(flight.received_bids) == 1:
                 winner = list(flight.received_bids[0].values())
                 if (not flight.agents_in_my_formation) and (not winner[0].agents_in_my_formation):
@@ -42,14 +44,14 @@ def do_Japanese(flight):
                 elif flight.agents_in_my_formation and flight.formation_role == "master" and winner[
                     0].agents_in_my_formation and winner[0].formation_role == "master":
                     flight.add_to_formation(winner[0], winner[1], discard_received_bids=True)
-                flight.highest_bid = 0
+                flight.highest_bid = False
                 flight.turn_count = 0
 
 
 
     # BIDDER
 
-    # First bid
+    # Open bid
     if not flight.auctioneer and flight.formation_state == 0 and flight.bid_made is False:
         candidates = flight.find_auction_candidates()
         scores = []

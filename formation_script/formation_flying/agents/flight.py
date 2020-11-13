@@ -483,8 +483,6 @@ class Flight(Agent):
         candidates = []
         for agent in neighbors:
             if type(agent) is Flight and agent.accepting_bids:
-                if (agent.formation_state == 0 and agent.auctioneer) or (
-                        agent.formation_state == 2 and agent.formation_role == "master"):
                     if not self == agent:
                         candidates.append(agent)
         return candidates
