@@ -72,7 +72,6 @@ class Flight(Agent):
         self.leaving_point = [-10, -10]
         self.joining_point = [-10, -10]
 
-        self.planned_distance = self.distance_between_points(self.pos, self.destination)
         self.planned_fuel = self.distance_between_points(self.pos, self.destination)
         self.planned_time = self.distance_between_points(self.pos, self.destination) / self.speed
         self.model.total_planned_fuel += self.planned_fuel
@@ -514,7 +513,7 @@ class Flight(Agent):
         return ((destination[0] - self.pos[0]) ** 2 + (destination[1] - self.pos[1]) ** 2) ** 0.5
 
     def distance_between_points(self, A, B):
-        return ((A[0] - B[0]) ** 2 + (A[1] - A[1]) ** 2) ** 0.5
+        return ((A[0] - B[0]) ** 2 + (A[1] - B[1]) ** 2) ** 0.5
 
     def kent_weights(self, n_agents):
         return -0.0017 * n_agents ** 3 + 0.0277 * n_agents ** 2 - 0.1639 * n_agents + 1.1357
@@ -578,7 +577,7 @@ class Flight(Agent):
             else:
                 return [x_P, y_P]
 
-        except (ValueError, FloatingPointError):
+        except (ValueError, FloatingPointError, TypeError):
             x_P, y_P = self.calc_middle_point(self.pos, target_agent.pos)
             return [x_P, y_P]
 
