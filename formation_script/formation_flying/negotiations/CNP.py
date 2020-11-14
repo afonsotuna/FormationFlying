@@ -45,7 +45,7 @@ def do_CNP(flight):
                 alliance = bid[3]
                 delay = flight.calculate_delay(bid[0])
                 score = ((their_fuel+my_fuel)*(1+alliance))/(delay+1)
-                if their_fuel*1.05 > abs(my_fuel):
+                if their_fuel > abs(my_fuel):
                     clean_bids.append({"agent": bid[0], "their_fuel": bid[1], "our_fuel": bid[2], "score": score})
             if clean_bids:
                 sorted_bids = sorted(clean_bids, key=lambda i: i["score"], reverse=True)
@@ -73,7 +73,7 @@ def do_CNP(flight):
                 our_fuel_saved = flight.calculate_potential_fuelsavings(agent)
                 their_fuel_saved = agent.calculate_potential_fuelsavings(flight)
                 if our_fuel_saved > 0:
-                    positive_savings.append({"agent": agent, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved})
+                    positive_savings.append({"agent": agent, "my_fuel_saved": our_fuel_saved, "their_fuel_saved": their_fuel_saved})
                 sorted_savings = sorted(positive_savings, key=lambda i: i["my_fuel_saved"], reverse=True)
                 if positive_savings:
                     best_offer = list(sorted_savings[0].values())
