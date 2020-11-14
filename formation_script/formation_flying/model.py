@@ -52,7 +52,9 @@ class FormationFlying(Model):
         destination_airport_y = [0.7, 0.9],
         fuel_reduction = 0.75,
         negotiation_method = 1,
+        joining_method = 0,
         alliance_ratio = 0.30,
+        manager_ratio = 0.40,
         offer_ratio = 0.80,
         entrance_fee = 50,
         bid_increase = 10
@@ -88,7 +90,9 @@ class FormationFlying(Model):
         self.departure_window = departure_window
         self.fuel_reduction = fuel_reduction
         self.negotiation_method = negotiation_method
+        self.joining_method = joining_method
         self.alliance_ratio = alliance_ratio
+        self.manager_ratio = manager_ratio
         self.offer_ratio = offer_ratio
         self.entrance_fee = entrance_fee
         self.bid_increase = bid_increase
