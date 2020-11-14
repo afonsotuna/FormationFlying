@@ -36,30 +36,32 @@ from .metrics import *
 max_steps = 10000 
 
 # Multiple iterations are used when running the batchrunner.py:
-n_iterations = 2
+n_iterations = 1
 
 model_params = {
     "n_flights": 25,
-    "n_origin_airports": 20,
-    "n_destination_airports": 20,
+    "n_origin_airports": 10,
+    "n_destination_airports": 10,
     "communication_range": 200, #[km]
-    "width": 750, # [km]
-    "height": 750, # [km]
+    "width": 250, # [km]
+    "height": 250, # [km]
     "speed": 0.25, #[km / second]
     "max_speed": 0.500,
     "fuel_reduction": 0.75,
     "alliance_ratio": 0.30,
-    "negotiation_method": 3,
+    "offer_ratio": 0.80,
+    "entrance_fee": 50,
+    "negotiation_method": 1,
     "departure_window": 3,
-    "origin_airport_x": [0.01, 0.3], 
-    "origin_airport_y": [0.01, 0.3],
+    "origin_airport_x": [0.01, 0.2],
+    "origin_airport_y": [0.01, 0.2],
     "destination_airport_x": [0.7, 0.99], 
     "destination_airport_y": [0.7, 0.99],
 }
 
 # To run model with a variable parameter:
 # example: variable_params = {"communication_range": [0, 100, 500]}
-variable_params = {}
+variable_params = {"n_flights": [10, 25, 50]}
 
 model_reporter_parameters={"Total Fuel Used": compute_total_fuel_used, 
                            "steps": compute_model_steps, 
