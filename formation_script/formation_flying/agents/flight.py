@@ -242,7 +242,10 @@ class Flight(Agent):
         joining_point = self.find_joining_point(target_agent)
         leaving_point = self.find_leaving_point(target_agent)
         my_meet_speed, _ = self.calc_speed_to_joining_point(target_agent)
-        time_to_meet = self.distance_between_points(self.pos, joining_point) / my_meet_speed
+        if my_meet_speed:
+            time_to_meet = self.distance_between_points(self.pos, joining_point) / my_meet_speed
+        else:
+            time_to_meet = 0
         time_cruise = self.distance_between_points(joining_point, leaving_point) / self.speed
         time_approach = self.distance_between_points(leaving_point, self.destination) / self.speed
         time_if_formation = time_to_meet + time_cruise + time_approach
@@ -592,7 +595,7 @@ class Flight(Agent):
                 return [x_P, y_P]
 
         elif self.model.joining_method == 1:
-            return self.calc_middle_point(self, target_agent)
+            return self.calc_middle_point(self.pos, target_agent.pos)
 
 
     def find_leaving_point(self, target_agent):
@@ -646,7 +649,7 @@ class Flight(Agent):
                 return [x_P, y_P]
 
         elif self.model.joining_method == 1:
-            return self.calc_middle_point(self, target_agent)
+            return self.calc_middle_point(self.destination, target_agent.destination)
 
     # =========================================================================
     #   This function actually moves the agent. It considers many different 

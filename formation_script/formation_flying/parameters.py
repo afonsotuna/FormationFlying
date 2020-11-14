@@ -30,30 +30,31 @@
 '''
 
 from .metrics import *
+import numpy as np
 
 
 # This can be infinite, as the model should stop on its own when all agents have arrived at their destination.
 max_steps = 10000 
 
 # Multiple iterations are used when running the batchrunner.py:
-n_iterations = 1
+n_iterations = 10
 
 model_params = {
-    "n_flights": 25,
+    "n_flights": 20,
     "n_origin_airports": 10,
     "n_destination_airports": 10,
     "communication_range": 200, #[km]
-    "width": 250, # [km]
-    "height": 250, # [km]
-    "speed": 0.25, #[km / second]
+    "width": 300, # [km]
+    "height": 300, # [km]
+    "speed": 0.3, #[km / second]
     "max_speed": 0.500,
     "fuel_reduction": 0.75,
-    "alliance_ratio": 0.30,
-    "manager_ratio": 0.40,
+    "alliance_ratio": 0.40,
+    #"manager_ratio": 0.40,
     "offer_ratio": 0.80,
     "entrance_fee": 50,
     "negotiation_method": 0,                # Greedy - 0 / CNP - 1 / English - 2 / Vickrey - 3 / Japanese - 4
-    "joining_method": 0,                    # Complex - 0 / Middle Point - 1
+    "joining_method": 1,                    # Complex - 0 / Middle Point - 1
     "bid_increase": 10,
     "departure_window": 3,
     "origin_airport_x": [0.01, 0.2],
@@ -64,7 +65,8 @@ model_params = {
 
 # To run model with a variable parameter:
 # example: variable_params = {"communication_range": [0, 100, 500]}
-variable_params = {"n_flights": [10, 25, 50]}
+variable_params = {"manager_ratio": [0.50]}
+
 
 model_reporter_parameters={"Total Fuel Used": compute_total_fuel_used, 
                            "steps": compute_model_steps, 
