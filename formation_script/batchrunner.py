@@ -7,8 +7,7 @@
 from mesa.batchrunner import BatchRunner
 from formation_flying.model import FormationFlying
 from formation_flying.parameters import model_params, max_steps, n_iterations, model_reporter_parameters, agent_reporter_parameters, variable_params
-import matplotlib.pyplot as plt
-import pandas as pd
+
 
 iterations = 0
 step_it = 10
@@ -30,5 +29,5 @@ for i in range(1, n_steps+1):
     run_data = batch_run.get_model_vars_dataframe()
     run_data.head()
 
-    run_data.to_csv(f"C:\\Users\\afons\\Desktop\\Simulations\\data dumps\\B{i}")
+    run_data.to_csv(f"C:\\Users\\afons\\Desktop\\Simulations\\coefficient of variance\\fuel_saved\\data dumps\\B{i}")
 
