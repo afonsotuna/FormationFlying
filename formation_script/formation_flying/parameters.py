@@ -39,7 +39,7 @@ max_steps = 10000
 n_iterations = 2
 
 model_params = {
-    "n_flights": 25,
+    "n_flights": 50,
     "n_origin_airports": 20,
     "n_destination_airports": 20,
     "communication_range": 200, #[km]
@@ -49,7 +49,7 @@ model_params = {
     "max_speed": 0.500,
     "fuel_reduction": 0.75,
     "alliance_ratio": 0.30,
-    "negotiation_method": 3,
+    "negotiation_method": 1,
     "departure_window": 3,
     "origin_airport_x": [0.01, 0.3], 
     "origin_airport_y": [0.01, 0.3],
@@ -59,7 +59,7 @@ model_params = {
 
 # To run model with a variable parameter:
 # example: variable_params = {"communication_range": [0, 100, 500]}
-variable_params = {}
+variable_params = {"n_flights": [5, 25, 50]}
 
 model_reporter_parameters={"Total Fuel Used": compute_total_fuel_used, 
                            "steps": compute_model_steps, 

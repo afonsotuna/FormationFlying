@@ -18,17 +18,12 @@ def do_CNP(flight):
         if targets:
             positive_savings = []
             for agent in targets:
-                fuel_saved = flight.calculate_potential_fuelsavings(agent)
-                joining_point = flight.find_joining_point(agent)
-                dist_self = ((joining_point[0] - flight.pos[0]) ** 2 + (joining_point[1] - flight.pos[1]) ** 2) ** 0.5
-                join_speed, their_speed = flight.calc_speed_to_joining_point(agent)
-                if int(dist_self) != 0:
-                    time_to_join = dist_self / join_speed
-                    if fuel_saved > 0:
-                        positive_savings.append(
-                            {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
+                my_fuel_saved = flight.calculate_potential_fuelsavings(agent)
+                their_fuel_saved = agent.calculate_potential_fuelsavings(flight)
+                if my_fuel_saved > 0:
+                    positive_savings.append({"agent": agent, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved})
 
-            sorted_savings = sorted(positive_savings, key=lambda i: i["fuel_saved"], reverse=True)
+            sorted_savings = sorted(positive_savings, key=lambda i: i["my_fuel_saved"], reverse=True)
             if positive_savings:
                 best_offer = list(sorted_savings[0].values())
                 flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.alliance, flight.model.schedule.steps + delta_T)
@@ -42,19 +37,26 @@ def do_CNP(flight):
     if flight.manager and flight.accepting_bids:
         if flight.received_bids:
             received_bids = flight.received_bids
-            sorted_bids = sorted(received_bids, key=lambda i: i["time_to_join"])
-            for bid in sorted_bids:
+            clean_bids = []
+            for bid in received_bids:
                 bid = list(bid.values())
-                if flight.model.schedule.steps <= bid[4]:
-                    if (not flight.agents_in_my_formation) and (not bid[0].agents_in_my_formation):
-                        flight.start_formation(bid[0], bid[1], discard_received_bids=True)
-                    elif flight.agents_in_my_formation and flight.formation_role == "master" and (
-                            not bid[0].agents_in_my_formation):
-                        flight.add_to_formation(bid[0], bid[1], discard_received_bids=True)
-                    elif flight.agents_in_my_formation and flight.formation_role == "master" and bid[
-                            0].agents_in_my_formation and bid[0].formation_role == "master":
-                        flight.add_to_formation(bid[0], bid[1], discard_received_bids=True)
-                    break
+                their_fuel = bid[1]
+                my_fuel = bid[2]
+                alliance = bid[3]
+                delay = flight.calculate_delay(bid[0])
+                score = ((their_fuel+my_fuel)*(1+alliance))/(delay+1)
+                if their_fuel*1.05 > abs(my_fuel):
+                    clean_bids.append({"agent": bid[0], "their_fuel": bid[1], "our_fuel": bid[2], "score": score})
+            if clean_bids:
+                sorted_bids = sorted(clean_bids, key=lambda i: i["score"], reverse=True)
+                winning_bid = list(sorted_bids[0].values())
+                if (not flight.agents_in_my_formation) and (not winning_bid[0].agents_in_my_formation):
+                    flight.start_formation(winning_bid[0], winning_bid[1], discard_received_bids=True)
+                elif flight.agents_in_my_formation and flight.formation_role == "master" and (not winning_bid[0].agents_in_my_formation):
+                    flight.add_to_formation(winning_bid[0], winning_bid[1], discard_received_bids=True)
+                elif flight.agents_in_my_formation and flight.formation_role == "master" and winning_bid[0].agents_in_my_formation and winning_bid[0].formation_role == "master":
+                    flight.add_to_formation(winning_bid[0], winning_bid[1], discard_received_bids=True)
+            flight.received_bids = []
         elif len(
                 flight.agents_in_my_formation) == 0 and flight.formation_state == 0 and flight.model.schedule.steps >= flight.departure_time + 50:
             neighbors = flight.find_CNP_candidate()
@@ -63,20 +65,16 @@ def do_CNP(flight):
                 flight.accepting_bids = False
 
     # Behaviour of a manager in-formation (making calls to join other formations - merging)
-    if flight.formation_role == "master" and flight.formation_state == 2 and (not flight.received_bids) and flight.model.schedule.steps % 5 == 0:
+    if flight.formation_role == "master" and flight.formation_state == 2 and (not flight.received_bids) and flight.model.schedule.steps % 10 == 0:
         candidates = flight.find_formation_candidates()
         if candidates:
             positive_savings = []
             for agent in candidates:
-                fuel_saved = flight.calculate_potential_fuelsavings(agent)
-                joining_point = flight.find_joining_point(agent)
-                dist_self = ((joining_point[0] - flight.pos[0]) ** 2 + (joining_point[1] - flight.pos[1]) ** 2) ** 0.5
-                join_speed, their_speed = flight.calc_speed_to_joining_point(agent)
-                time_to_join = dist_self / join_speed
-                if fuel_saved > 0:
-                    positive_savings.append(
-                        {"agent": agent, "fuel_saved": fuel_saved, "time_to_join": time_to_join})
-                sorted_savings = sorted(positive_savings, key=lambda i: i["fuel_saved"], reverse=True)
+                our_fuel_saved = flight.calculate_potential_fuelsavings(agent)
+                their_fuel_saved = agent.calculate_potential_fuelsavings(flight)
+                if our_fuel_saved > 0:
+                    positive_savings.append({"agent": agent, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved})
+                sorted_savings = sorted(positive_savings, key=lambda i: i["my_fuel_saved"], reverse=True)
                 if positive_savings:
                     best_offer = list(sorted_savings[0].values())
                     flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.alliance, flight.model.schedule.steps + delta_T)
