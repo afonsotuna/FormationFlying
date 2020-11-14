@@ -21,12 +21,18 @@ def do_CNP(flight):
                 my_fuel_saved = flight.calculate_potential_fuelsavings(agent)
                 their_fuel_saved = agent.calculate_potential_fuelsavings(flight)
                 if my_fuel_saved > 0:
-                    positive_savings.append({"agent": agent, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved})
+                    positive_savings.append(
+                        {"agent": agent, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved})
 
             sorted_savings = sorted(positive_savings, key=lambda i: i["my_fuel_saved"], reverse=True)
             if positive_savings:
                 best_offer = list(sorted_savings[0].values())
-                flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.alliance, flight.model.schedule.steps + delta_T)
+                if best_offer[0].alliance and not flight.alliance:
+                    flight.make_bid(best_offer[0], best_offer[1] * flight.model.offer_ratio + flight.model.entrance_fee,
+                                    best_offer[2], flight.alliance, flight.model.schedule.steps + delta_T)
+                else:
+                    flight.make_bid(best_offer[0], best_offer[1] * flight.model.offer_ratio, best_offer[2],
+                                    flight.alliance, flight.model.schedule.steps + delta_T)
 
         elif not targets and flight.model.schedule.steps >= flight.departure_time + 50:
             flight.manager = True
@@ -44,17 +50,19 @@ def do_CNP(flight):
                 my_fuel = bid[2]
                 alliance = bid[3]
                 delay = flight.calculate_delay(bid[0])
-                score = ((their_fuel+my_fuel)*(1+alliance))/(delay+1)
+                score = ((their_fuel + my_fuel) * (1 + alliance)) / (delay + 1)
                 if score > 0:
                     clean_bids.append({"agent": bid[0], "their_fuel": bid[1], "our_fuel": bid[2], "score": score})
             if clean_bids:
                 sorted_bids = sorted(clean_bids, key=lambda i: i["score"], reverse=True)
                 winning_bid = list(sorted_bids[0].values())
-                if (not flight.agents_in_my_formation) and (not winning_bid[0].agents_in_my_formation):
+                if not flight.agents_in_my_formation and not winning_bid[0].agents_in_my_formation:
                     flight.start_formation(winning_bid[0], winning_bid[1], discard_received_bids=True)
-                elif flight.agents_in_my_formation and flight.formation_role == "master" and (not winning_bid[0].agents_in_my_formation):
+                elif flight.agents_in_my_formation and flight.formation_role == "master" and (
+                not winning_bid[0].agents_in_my_formation):
                     flight.add_to_formation(winning_bid[0], winning_bid[1], discard_received_bids=True)
-                elif flight.agents_in_my_formation and flight.formation_role == "master" and winning_bid[0].agents_in_my_formation and winning_bid[0].formation_role == "master":
+                elif flight.agents_in_my_formation and flight.formation_role == "master" and winning_bid[
+                    0].agents_in_my_formation and winning_bid[0].formation_role == "master":
                     flight.add_to_formation(winning_bid[0], winning_bid[1], discard_received_bids=True)
             flight.received_bids = []
         elif len(
@@ -65,7 +73,8 @@ def do_CNP(flight):
                 flight.accepting_bids = False
 
     # Behaviour of a manager in-formation (making calls to join other formations - merging)
-    if flight.formation_role == "master" and flight.formation_state == 2 and (not flight.received_bids) and flight.model.schedule.steps % 10 == 0:
+    if flight.formation_role == "master" and flight.formation_state == 2 and (
+            not flight.received_bids) and flight.model.schedule.steps % 10 == 0:
         candidates = flight.find_formation_candidates()
         if candidates:
             positive_savings = []
@@ -73,8 +82,15 @@ def do_CNP(flight):
                 our_fuel_saved = flight.calculate_potential_fuelsavings(agent)
                 their_fuel_saved = agent.calculate_potential_fuelsavings(flight)
                 if our_fuel_saved > 0:
-                    positive_savings.append({"agent": agent, "my_fuel_saved": our_fuel_saved, "their_fuel_saved": their_fuel_saved})
+                    positive_savings.append(
+                        {"agent": agent, "my_fuel_saved": our_fuel_saved, "their_fuel_saved": their_fuel_saved})
                 sorted_savings = sorted(positive_savings, key=lambda i: i["my_fuel_saved"], reverse=True)
                 if positive_savings:
                     best_offer = list(sorted_savings[0].values())
-                    flight.make_bid(best_offer[0], best_offer[1], best_offer[2], flight.alliance, flight.model.schedule.steps + delta_T)
+                    if best_offer[0].alliance and not flight.alliance:
+                        flight.make_bid(best_offer[0],
+                                        best_offer[1] * flight.model.offer_ratio + flight.model.entrance_fee,
+                                        best_offer[2], flight.alliance, flight.model.schedule.steps + delta_T)
+                    else:
+                        flight.make_bid(best_offer[0], best_offer[1] * flight.model.offer_ratio, best_offer[2],
+                                        flight.alliance, flight.model.schedule.steps + delta_T)

@@ -4,8 +4,8 @@
 # =============================================================================
 '''
 
-def do_Vickrey(flight):
 
+def do_Vickrey(flight):
     delta_T = 5
 
     # AUCTIONEER
@@ -36,9 +36,6 @@ def do_Vickrey(flight):
             elif flight.agents_in_my_formation and flight.formation_role == "master" and winner.agents_in_my_formation and winner.formation_role == "master":
                 flight.add_to_formation(winner, price, discard_received_bids=True)
 
-
-
-
     # BIDDER
 
     # Open bid
@@ -51,15 +48,16 @@ def do_Vickrey(flight):
                 alliance_status = target_agent.alliance
                 delay_time = flight.calculate_delay(target_agent)
                 fuel_saved = flight.calculate_potential_fuelsavings(target_agent)
-                bid = bid_ratio*fuel_saved
-                score = 500*alliance_status-delay_time+fuel_saved
-                scores.append({"agent": target_agent, "delay": delay_time, "alliance": alliance_status, "score": score, "bid": bid})
+                bid = bid_ratio * fuel_saved
+                score = 500 * alliance_status - delay_time + fuel_saved
+                scores.append({"agent": target_agent, "delay": delay_time, "alliance": alliance_status, "score": score,
+                               "bid": bid})
             sorted_scores = sorted(scores, key=lambda i: i["score"], reverse=True)
             best_option = list(sorted_scores[0].values())
             agent = best_option[0]
             delay_time = best_option[1]
             alliance_status = best_option[2]
             bid = best_option[4]
-            flight.make_bid(agent, bid, delay_time, alliance_status, flight.model.schedule.steps+delta_T)
+            flight.make_bid(agent, bid, delay_time, alliance_status, flight.model.schedule.steps + delta_T)
             flight.auctioneer_target = agent
             flight.bid_made = True

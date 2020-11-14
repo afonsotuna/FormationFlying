@@ -206,7 +206,6 @@ class Flight(Agent):
 
         savings = my_original_fuel - my_new_fuel
 
-
         # MY SLAVES' SAVINGS
         if self.formation_state == "master" and self.agents_in_my_formation:
             my_agents_total = 0
@@ -214,7 +213,8 @@ class Flight(Agent):
                 aircraft_original_fuel = self.distance_between_points(aircraft.pos, self.destination)
 
                 aircraft_fuel_to_join = self.distance_between_points(aircraft.pos, joining_point)
-                aircraft_formation_fuel =  self.distance_between_points(joining_point, leaving_point) * self.model.fuel_reduction
+                aircraft_formation_fuel = self.distance_between_points(joining_point,
+                                                                       leaving_point) * self.model.fuel_reduction
                 aircraft_approach_fuel = self.distance_between_points(leaving_point, aircraft.destination)
                 aircraft_new_fuel = aircraft_fuel_to_join + aircraft_formation_fuel + aircraft_approach_fuel
 
@@ -222,7 +222,6 @@ class Flight(Agent):
             savings += my_agents_total
 
         return savings
-
 
     # =============================================================================
     #   This formula calculated the delay incurred by aircraft A to join aircraft B
@@ -327,7 +326,7 @@ class Flight(Agent):
             for agent in target_agent.agents_in_my_formation:
                 their_agents.append(agent)  # These are their current formation agents
 
-            # In current implementationl, bid payment (and receipt) is divided equally amongst everyone
+            # In current implementation, bid payment (and receipt) is divided equally amongst everyone
             bid_receivers = bid_value / (len(self.agents_in_my_formation) + 1)
             for agent in my_agents:
                 agent.deal_value += bid_receivers
@@ -464,15 +463,16 @@ class Flight(Agent):
         candidates = []
         for agent in neighbors:
             if type(agent) is Flight and agent.accepting_bids:
-                    if not self == agent:
-                        candidates.append(agent)
+                if not self == agent:
+                    candidates.append(agent)
         return candidates
 
     # =========================================================================
     #   Making the bid.
     # =========================================================================
     def make_bid(self, bidding_target, my_fuel_saved, their_fuel_saved, alliance_status, bid_expiration_date):
-        bid = {"bidding_agent": self, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved, "alliance": alliance_status,
+        bid = {"bidding_agent": self, "my_fuel_saved": my_fuel_saved, "their_fuel_saved": their_fuel_saved,
+               "alliance": alliance_status,
                "exp_date": bid_expiration_date}
         bidding_target.received_bids.append(bid)
 
@@ -626,7 +626,7 @@ class Flight(Agent):
             else:
                 return [x_P, y_P]
 
-        except (ValueError, FloatingPointError):
+        except (ValueError, FloatingPointError, TypeError):
             x_P, y_P = self.calc_middle_point(self.destination, target_agent.destination)
             return [x_P, y_P]
 
@@ -715,7 +715,7 @@ class Flight(Agent):
         joining_point = self.find_joining_point(target_agent)
         dist_self = ((joining_point[0] - self.pos[0]) ** 2 + (joining_point[1] - self.pos[1]) ** 2) ** 0.5
         dist_target = ((joining_point[0] - target_agent.pos[0]) ** 2 + (
-                    joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
+                joining_point[1] - target_agent.pos[1]) ** 2) ** 0.5
 
         if dist_self >= dist_target:
             own_speed = self.max_speed
