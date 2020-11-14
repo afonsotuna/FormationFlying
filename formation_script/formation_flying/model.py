@@ -54,7 +54,8 @@ class FormationFlying(Model):
         negotiation_method = 1,
         alliance_ratio = 0.30,
         offer_ratio = 0.80,
-        entrance_fee = 50
+        entrance_fee = 50,
+        bid_increase = 10
     ):
         
         # =====================================================================
@@ -90,6 +91,7 @@ class FormationFlying(Model):
         self.alliance_ratio = alliance_ratio
         self.offer_ratio = offer_ratio
         self.entrance_fee = entrance_fee
+        self.bid_increase = bid_increase
 
         self.fuel_savings_closed_deals = 0
 

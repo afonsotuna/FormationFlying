@@ -19,6 +19,7 @@ from mesa import Agent
 from .airports import Airport
 from ..negotiations.greedy import do_greedy  # !!! Don't forget the others.
 from ..negotiations.CNP import do_CNP
+from..negotiations.english import do_English
 from ..negotiations.japanese import do_Japanese
 from ..negotiations.vickrey import do_Vickrey
 import math
@@ -100,6 +101,7 @@ class Flight(Agent):
         self.formation_role = False
         self.highest_bid = 0
         self.bid_made = False
+        self.auction_on = False
         self.highest_bidder = 0
         self.auctioneer_target = 0
 
@@ -164,8 +166,8 @@ class Flight(Agent):
 
             if self.model.negotiation_method == 1:
                 do_CNP(self)
-            # if self.model.negotiation_method == 2:
-            #     do_English(self)
+            if self.model.negotiation_method == 2:
+                do_English(self)
             if self.model.negotiation_method == 3:
                 do_Vickrey(self)
             if self.model.negotiation_method == 4:
