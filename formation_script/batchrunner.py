@@ -29,5 +29,5 @@ for i in range(1, n_steps+1):
     run_data = batch_run.get_model_vars_dataframe()
     run_data.head()
 
-    run_data.to_csv(f"C:\\Users\\afons\\Desktop\\Simulations\\coefficient of variance\\fuel_saved\\data dumps\\B{i}")
+    run_data.to_csv(f"C:\\Users\\afons\\Desktop\\Simulations\\coefficient of variance\\fuel_saved\\B{i}")
 
