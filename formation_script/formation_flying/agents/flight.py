@@ -279,8 +279,8 @@ class Flight(Agent):
                 agent.agents_in_my_formation.append(target_agent)
                 agent.formation_state = 4
 
-            if target_agent in my_agents:
-                raise Exception("This is not correct")
+            # if target_agent in my_agents:
+            #     raise Exception("This is not correct")
 
             # In current implementation, all formation members (including myself) receive the same equal piece of bid
             bid_receivers = bid_value / (len(self.agents_in_my_formation) + 1)
