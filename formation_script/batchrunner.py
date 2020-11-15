@@ -46,4 +46,4 @@ batch_run.run_all()
 run_data = batch_run.get_model_vars_dataframe()
 run_data.head()
 
-run_data.to_csv(r"C:\Users\afons\Desktop\Simulations\compare\complex")
+run_data.to_csv(r"C:\Users\afons\Desktop\Simulations\compare\middle_point")

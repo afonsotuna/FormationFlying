@@ -54,7 +54,7 @@ model_params = {
     "offer_ratio": 0.80,
     "entrance_fee": 50,
     "negotiation_method": 0,                # Greedy - 0 / CNP - 1 / English - 2 / Vickrey - 3 / Japanese - 4
-    "joining_method": 0,                    # Complex - 0 / Middle Point - 1
+    "joining_method": 1,                    # Complex - 0 / Middle Point - 1
     "bid_increase": 10,
     "departure_window": 3,
     "origin_airport_x": [0.01, 0.2],
