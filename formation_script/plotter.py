@@ -36,7 +36,7 @@ def get_coeff_of_var_plot(n_files):
     for i in range(1, n_files+1):
         data = pd.read_csv(f"C:\\Users\\afons\\Desktop\\Simulations\\coefficient of variance\\fuel_saved\\B{i}")
         x_axis = data["manager_ratio"].to_numpy()
-        y_axis = data["Fuel saving ratio"].to_numpy()
+        y_axis = data["Average delay"].to_numpy()
         coeff = coeff_of_var(y_axis)
         clean_data[i-1, 0] = find_n_iterations(x_axis)
         clean_data[i-1, 1] = coeff
@@ -49,7 +49,7 @@ def get_coeff_of_var_plot(n_files):
 
 # clean_data = averager(x_axis, y_axis)
 
-clean_data = get_coeff_of_var_plot(3)
+clean_data = get_coeff_of_var_plot(25)
 plt.scatter(clean_data[:,0], clean_data[:,1])
 plt.xlabel("N iterations")
 plt.ylabel("Coefficient of variation")

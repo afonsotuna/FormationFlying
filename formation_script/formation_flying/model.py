@@ -70,6 +70,8 @@ class FormationFlying(Model):
         self.vision = communication_range
         self.speed = speed
         self.max_speed = max_speed
+        self.height = height
+        self.width = width
         
         # The agents are activated in random order at each step, in a space that
         # has a certain width and height and that is not toroidal 
@@ -108,6 +110,8 @@ class FormationFlying(Model):
         self.agents_in_formation = 0
 
         self.total_fuel_consumption = 0
+        self.alliance_fuel_consumption = 0
+        self.alliance_planned_fuel = 0
         self.total_flight_time = 0
         self.total_delay = 0
 

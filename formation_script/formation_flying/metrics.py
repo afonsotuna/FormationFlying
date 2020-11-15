@@ -56,3 +56,6 @@ def manager_counter(model):
 
 def fuel_saving_ratio(model):
     return model.total_fuel_consumption/model.total_planned_fuel
+
+def alliance_saving_ratio(model):
+    return model.alliance_fuel_consumption/model.alliance_planned_fuel

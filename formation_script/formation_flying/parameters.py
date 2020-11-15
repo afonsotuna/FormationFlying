@@ -37,13 +37,13 @@ import numpy as np
 max_steps = 10000 
 
 # Multiple iterations are used when running the batchrunner.py:
-n_iterations = 10
+n_iterations = 50
 
 model_params = {
     "n_flights": 20,
     "n_origin_airports": 10,
     "n_destination_airports": 10,
-    "communication_range": 200, #[km]
+    "communication_range": 100, #[km]
     "width": 300, # [km]
     "height": 300, # [km]
     "speed": 0.3, #[km / second]
@@ -54,7 +54,7 @@ model_params = {
     "offer_ratio": 0.80,
     "entrance_fee": 50,
     "negotiation_method": 0,                # Greedy - 0 / CNP - 1 / English - 2 / Vickrey - 3 / Japanese - 4
-    "joining_method": 1,                    # Complex - 0 / Middle Point - 1
+    "joining_method": 0,                    # Complex - 0 / Middle Point - 1
     "bid_increase": 10,
     "departure_window": 3,
     "origin_airport_x": [0.01, 0.2],
@@ -79,6 +79,7 @@ model_reporter_parameters={"Total Fuel Used": compute_total_fuel_used,
                            "Real saved fuel": real_fuel_saved,
                            "Average delay": average_delay,
                            "Fuel saving ratio": fuel_saving_ratio,
+                           "Alliance saving ratio": alliance_saving_ratio,
                            "Deal values": total_deal_value}
 
 # In order to collect values like "deal-value", they should be specified on all agents.

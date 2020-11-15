@@ -90,6 +90,8 @@ class Flight(Agent):
 
         self.last_bid_expiration_time = 0
 
+        if self.alliance:
+            self.model.alliance_planned_fuel += self.planned_fuel
         # =============================================================================
         #   Agents decide during initialization whether they are manager or auctioneer
         #   However, this can also be changed during the flight.
@@ -585,7 +587,7 @@ class Flight(Agent):
                 x_P = best_root[0]
                 y_P = m * x_P + b
 
-                if x_P == 0 or y_P <= 0:
+                if x_P <= 0 or y_P <= 0 or x_P >= self.model.width or y_P >= self.model.height:
                     raise ValueError
                 else:
                     return [x_P, y_P]
@@ -639,7 +641,7 @@ class Flight(Agent):
                 x_P = best_root[0]
                 y_P = m * x_P + b
 
-                if x_P == 0 or y_P <= 0:
+                if x_P <= 0 or y_P <= 0 or x_P >= self.model.width or y_P >= self.model.height:
                     raise ValueError
                 else:
                     return [x_P, y_P]
@@ -717,6 +719,8 @@ class Flight(Agent):
 
             self.model.total_fuel_consumption += f_c
             self.fuel_consumption += f_c
+            if self.alliance:
+                self.model.alliance_fuel_consumption += f_c
 
             self.model.space.move_agent(self, new_pos)
 

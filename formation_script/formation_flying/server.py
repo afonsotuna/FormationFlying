@@ -65,7 +65,7 @@ def boid_draw(agent):
 formation_canvas = SimpleCanvas(boid_draw, 1000, 1000) 
 
 
-chart = ChartModule([{"Label": "Fuel saving ratio", "Color": "Black"}],
+chart = ChartModule([{"Label": "Alliance saving ratio", "Color": "Black"}],
                     data_collector_name='datacollector')
 server = ModularServer(FormationFlying, [formation_canvas, chart], "Formations", model_params)
 
